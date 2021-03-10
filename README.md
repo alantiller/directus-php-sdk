@@ -68,10 +68,16 @@ $directus->auth_logout();
 ```
 
 ### Request a Password Reset
-
+The second value is optional if you want to sent a custom return URL for the reset email.
+```
+$directus->auth_password_request('demo@slations.co.uk', 'https://example.com/comfirm');
+```
 
 ### Reset a Password
-
+Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
+```
+$directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd');
+```
 
 ## Users
 
