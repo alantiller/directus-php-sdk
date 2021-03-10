@@ -14,12 +14,12 @@
 
 class Directus {
 
-    private $base_url;
+    public $base_url;
     private $auth_storage;
     private $api_auth_token;
 
     public function config($config) {
-        $this->base_url = $config['base_url'];
+        $this ->base_url = $config['base_url'];
         $this->auth_storage = $config['auth_storage'];
     }
 
@@ -71,9 +71,18 @@ class Directus {
 		}	
 	}
 
+    // Items
+
     public function get_items($collection, $data) {
         return $this->make_call('/items/' . $collection, $data, 'GET');
 	}
 
+    public function create_items($collection, $fields) {
+
+    }
+
+    public function update_items($collection, $id, $fields) {
+        return $this->make_call('/items/' . $collection . '/' . $id, $fields, 'PATCH');
+    }
 
 }

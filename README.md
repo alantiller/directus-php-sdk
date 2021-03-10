@@ -1,3 +1,8 @@
+# THIS IS NOT A PRODUCTION VERSION
+
+This is still in heavy development and is not a working project, we are working as hard as we can to get this finished.
+
+
 <p align="center"><img width="400" alt="Logo" src="https://cdn.slations.co.uk/images/Slations-Logo.svg"></p>
 
 <br>
