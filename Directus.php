@@ -15,11 +15,16 @@
 class Directus {
 
 	private $base_url;
-	private $refresh_token;
+	private $auth_storage;
+    private $api_auth_token;
 
 	public function config($config) {
 		$this->base_url = $config['base_url'];
-		$this->refresh_token = $config['refresh_token'];
+        $this->auth_storage = $config['auth_storage'];
+	}
+
+    public function auth_token($token) {
+		$this->api_auth_token = $token;
 	}
 
 	private function get_access_token() {
@@ -43,10 +48,8 @@ class Directus {
 					$request = sprintf("%s?%s", $request, http_build_query($data));
 		}
 	
-		if ($this->refresh_token) {
-			$access_token = get_access_token($this->refresh_token);
-			curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . $access_token));
-		}
+		if ($this->api_auth_token)
+		    curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . $this->api_auth_token));
 
 		curl_setopt($curl, CURLOPT_URL, $request);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
