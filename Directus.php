@@ -32,50 +32,50 @@ class Directus {
     }
 
     private function make_call($request, $data = false, $method = 'GET') {
-		$request = $this->base_url . $request;
+        $request = $this->base_url . $request;
 
-		switch ($method) {
-			case "POST":
-				curl_setopt($curl, CURLOPT_POST, 1);
-				if ($data)
-					curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-				break;
-			case "PUT":
-				curl_setopt($curl, CURLOPT_PUT, 1);
-				break;
-			default:
-				if ($data)
-					$request = sprintf("%s?%s", $request, http_build_query($data));
-		}
-	
-		if ($this->api_auth_token)
-		    curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . $this->api_auth_token));
+        switch ($method) {
+            case "POST":
+                curl_setopt($curl, CURLOPT_POST, 1);
+                if ($data)
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                break;
+            case "PUT":
+                curl_setopt($curl, CURLOPT_PUT, 1);
+                break;
+            default:
+                if ($data)
+                    $request = sprintf("%s?%s", $request, http_build_query($data));
+        }
 
-		curl_setopt($curl, CURLOPT_URL, $request);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-	
-		$result = curl_exec($curl);
-		$http_headers = curl_getinfo($curl);
-		$http_error = curl_errno($curl);
+        if ($this->api_auth_token)
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . $this->api_auth_token));
+        
+        curl_setopt($curl, CURLOPT_URL, $request);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-		curl_close($curl);
+        $result = curl_exec($curl);
+        $http_headers = curl_getinfo($curl);
+        $http_error = curl_errno($curl);
+        
+        curl_close($curl);
 	
-		if ($http_error) {
-			$result['response'] = curl_error($ch);
-			$result['request'] = array("url" => $url, "code" => $http_headers['http_code'], "total_time" => $http_headers['total_time']);
-			return $result;
-		} else {
-			$result['response'] = json_decode($result, true);
-			$result['request'] = array("url" => $url, "code" => $http_headers['http_code'], "total_time" => $http_headers['total_time']);
-			return $result;
-		}	
-	}
+        if ($http_error) {
+            $result['response'] = curl_error($ch);
+            $result['request'] = array("url" => $url, "code" => $http_headers['http_code'], "total_time" => $http_headers['total_time']);
+            return $result;
+        } else {
+            $result['response'] = json_decode($result, true);
+            $result['request'] = array("url" => $url, "code" => $http_headers['http_code'], "total_time" => $http_headers['total_time']);
+            return $result;
+        }	
+    }
 
     // Items
 
     public function get_items($collection, $data) {
         return $this->make_call('/items/' . $collection, $data, 'GET');
-	}
+    }
 
     public function create_items($collection, $fields) {
 
