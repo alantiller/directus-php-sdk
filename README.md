@@ -14,7 +14,7 @@ The Slations unofficial PHP SDK for Directus 9
 
 # Documentation
 
-## Installation
+## Installation (DONE)
 
 To install the Directus PHP SDK is super simple and easy. First download the latest release from the releases section of Github and extract the files. Then copy the following files into your project and your ready to get started.
 ```
@@ -22,7 +22,7 @@ Desired Folder
 |- Directus.php
 ```
 
-## Usage
+## Usage (DONE)
 
 ```
 <?php 
@@ -42,38 +42,70 @@ $directus->config([
 
 ## Global
 
-### Getting the API URL
+### Getting the API URL (DONE)
 
 ```
 $directus->base_url;
 ```
 
 
+## Items
+
+### Create Single Item (TODO: Not yet completed)
+
+
+
+### Read All (TODO: Not yet completed)
+```
+$directus->get_items('articles');
+```
+
+### Read By Query (TODO: Not yet completed)
+```
+$directus->get_items('articles', array(
+  search => "",
+  filter => array(
+    "date_published" => array(
+      "_gte" => "$NOW"
+    )
+  )
+));
+```
+### Read By Primary Key(s) (TODO: Not yet completed)
+```
+// Single
+$directus->get_items('articles', 15);
+
+// Multiple
+$directus->get_items('articles', array(15, 42));
+```
+
+
 ## Auth
 
-### Login
+### Login (TODO: Not yet completed)
 
 ```
 $directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
 ```
 
-### Refresh
+### Refresh (TODO: Not yet completed)
 
 By default the SDK will call a new
 
-### Logout
+### Logout (TODO: Not yet completed)
 
 ```
 $directus->auth_logout();
 ```
 
-### Request a Password Reset
+### Request a Password Reset (TODO: Not yet completed)
 The second value is optional if you want to sent a custom return URL for the reset email.
 ```
 $directus->auth_password_request('demo@slations.co.uk', 'https://example.com/comfirm');
 ```
 
-### Reset a Password
+### Reset a Password (TODO: Not yet completed)
 Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
 ```
 $directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd');
@@ -81,19 +113,19 @@ $directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd
 
 ## Users
 
-### Invite a New User
+### Invite a New User (TODO: Not yet completed)
 
 
-### Accept a User Invite
+### Accept a User Invite (TODO: Not yet completed)
 
 
-### Enable Two-Factor Authentication
+### Enable Two-Factor Authentication (TODO: Not yet completed)
 
 
-### Disable Two-Factor Authentication
+### Disable Two-Factor Authentication (TODO: Not yet completed)
 
 
-### Get the Current User
+### Get the Current User (TODO: Not yet completed)
 
 
-### Update the Current Users
+### Update the Current Users (TODO: Not yet completed)
