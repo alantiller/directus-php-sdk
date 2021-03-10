@@ -9,9 +9,30 @@ The Slations unofficial PHP SDK for Directus 9
 
 # Documentation
 
-##
+## Installation
 
+To install the Directus PHP SDK is super simple and easy. First download the latest release from the releases section of Github and extract the files. Then copy the following files into your project and your ready to get started.
+```
+Desired Folder
+|- Directus.php
+```
 
+## Usage
+
+```
+<?php 
+
+include 'Directus.php'; // Include the SDK Class
+
+$directus = new Directus(); // Create a new Directus SDK instance
+
+// Setup the config for the Directus SDK
+$directus->config([
+  "base_url" => "https://url.to.your.directus.install.io/",
+  "" => ""
+]);
+
+```
 
 
 
