@@ -34,13 +34,19 @@ $directus = new Directus(); // Create a new Directus SDK instance
 // Setup the config for the Directus SDK
 $directus->config([
   "base_url" => "https://url.to.your.directus.install.io/",
-  "" => ""
+  "auth_storage" => "$_SESSION" // This can be set to $_SESSION or if you want to store it as a cookie you can also use $_COOKIE
 ]);
 
 ```
 
 
+## Global
 
+### Getting the API URL
+
+```
+$directus->base_url;
+```
 
 
 ## Auth
@@ -48,17 +54,20 @@ $directus->config([
 ### Login
 
 ```
-$directus->auth_user([]);
+$directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
 ```
 
 ### Refresh
 
+By default the SDK will call a new
 
 ### Logout
 
+```
+$directus->auth_logout();
+```
 
 ### Request a Password Reset
-
 
 
 ### Reset a Password

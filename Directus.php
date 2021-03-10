@@ -33,6 +33,7 @@ class Directus {
 
     private function make_call($request, $data = false, $method = 'GET') {
         $request = $this->base_url . $request;
+        $curl = curl_init();
 
         switch ($method) {
             case "POST":
@@ -42,6 +43,16 @@ class Directus {
                 break;
             case "PUT":
                 curl_setopt($curl, CURLOPT_PUT, 1);
+                break;
+            case "PATCH":
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+                if ($data)
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                break;
+            case "DELETE":
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+                if ($data)
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
                 break;
             default:
                 if ($data)
@@ -55,19 +66,14 @@ class Directus {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         $result = curl_exec($curl);
-        $http_headers = curl_getinfo($curl);
         $http_error = curl_errno($curl);
         
         curl_close($curl);
 	
         if ($http_error) {
-            $result['response'] = curl_error($ch);
-            $result['request'] = array("url" => $url, "code" => $http_headers['http_code'], "total_time" => $http_headers['total_time']);
-            return $result;
+            return curl_error($ch);
         } else {
-            $result['response'] = json_decode($result, true);
-            $result['request'] = array("url" => $url, "code" => $http_headers['http_code'], "total_time" => $http_headers['total_time']);
-            return $result;
+            return json_decode($result, true);
         }	
     }
 
@@ -78,11 +84,19 @@ class Directus {
     }
 
     public function create_items($collection, $fields) {
-
+        return $this->make_call('/items/' . $collection, $fields, 'POST');
     }
 
     public function update_items($collection, $id, $fields) {
         return $this->make_call('/items/' . $collection . '/' . $id, $fields, 'PATCH');
+    }
+
+    public function delete_items($collection, $id) {
+        if(is_array($id)):
+            return $this->make_call('/items/' . $collection, $id, 'DELETE');    
+        else:
+            return $this->make_call('/items/' . $collection . '/' . $id, false, 'DELETE');
+        endif;
     }
 
 }
