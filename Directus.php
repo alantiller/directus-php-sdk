@@ -14,24 +14,24 @@
 
 class Directus {
 
-	private $base_url;
-	private $auth_storage;
+    private $base_url;
+    private $auth_storage;
     private $api_auth_token;
 
-	public function config($config) {
-		$this->base_url = $config['base_url'];
+    public function config($config) {
+        $this->base_url = $config['base_url'];
         $this->auth_storage = $config['auth_storage'];
-	}
+    }
 
     public function auth_token($token) {
-		$this->api_auth_token = $token;
-	}
+        $this->api_auth_token = $token;
+    }
 
-	private function get_access_token() {
+    private function get_access_token() {
 
-	}
+    }
 
-	private function make_call($request, $data = false, $method = 'GET') {
+    private function make_call($request, $data = false, $method = 'GET') {
 		$request = $this->base_url . $request;
 
 		switch ($method) {
@@ -71,10 +71,8 @@ class Directus {
 		}	
 	}
 
-	public function get_items($collection, $data) {
-
-		return $this->make_call('/items/' . $collection, $data, 'GET');
-
+    public function get_items($collection, $data) {
+        return $this->make_call('/items/' . $collection, $data, 'GET');
 	}
 
 
