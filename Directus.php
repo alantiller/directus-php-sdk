@@ -134,7 +134,7 @@ class Directus {
 
     public function auth_user($email, $password, $otp = false) {
         $fields = array();
-        
+
         $fields['email'] = $email;
         $fields['password'] = $password;
         $fields['mode'] = "json";
@@ -174,3 +174,5 @@ class Directus {
     // Users
 
 }
+
+?>
