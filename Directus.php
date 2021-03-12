@@ -42,13 +42,13 @@ class DirectusSDK {
         endif;
     }
 	
-	public function get_value($key) {
+    public function get_value($key) {
         if($this->auth_storage === '_SESSION'):
             return $_SESSION[$key];
         elseif($this->auth_storage === '_COOKIE'):
             return $_COOKIE[$key];
         endif;
-	}
+    }
 
     private function unset_value($key) {
         if($this->auth_storage === '_SESSION'):
@@ -56,7 +56,7 @@ class DirectusSDK {
         elseif($this->auth_storage === '_COOKIE'):
             setcookie($key, '', time() - 1, "/");
         endif;
-	}
+    }
 	
     // Core Functions
 
@@ -93,7 +93,7 @@ class DirectusSDK {
         endif;
     }
 	
-	private function strip_headers($response) {
+    private function strip_headers($response) {
         if($this->config_strip_headers === false):
             return $response;
         else:
@@ -223,9 +223,7 @@ class DirectusSDK {
             return true;
         else:
             return $response;
-        endif;
-        
-        
+        endif;   
     }
 
     public function auth_password_request($email, $reset_url = false) {
@@ -248,11 +246,5 @@ class DirectusSDK {
         else:
             return $this->strip_headers($response);
         endif;
-
-
     }
-
-    // Users
-
-    // TODO
 } ?>
