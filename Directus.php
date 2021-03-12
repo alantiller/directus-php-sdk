@@ -209,7 +209,7 @@ class DirectusSDK {
 
             return true;
         else:
-            return $response;
+            return $this->strip_headers($response);
         endif;
     }
 
@@ -222,7 +222,7 @@ class DirectusSDK {
             $this->unset_value('directus_access_expires');
             return true;
         else:
-            return $response;
+            return $this->strip_headers($response);
         endif;   
     }
 
@@ -234,7 +234,7 @@ class DirectusSDK {
         if($response['headers']['http_code'] === 200):
             return true;
         else:
-            return false;
+            return $this->strip_headers($response);
         endif;
     }
 
