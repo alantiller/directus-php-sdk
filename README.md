@@ -85,7 +85,6 @@ $directus->get_items('articles', array(
 
 ### Read By Primary Key
 ```
-// Single
 $directus->get_items('articles', 15);
 ```
 
