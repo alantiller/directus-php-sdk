@@ -48,9 +48,14 @@ $directus->base_url;
 
 ## Items
 
-### Create Single Item (TODO: Not yet completed)
-
-
+### Create Single Item (DONE)
+```
+$directus->create_items('articles', array(
+  "status" => "draft",
+  "title" => "example",
+  "slug" => "example"
+));
+```
 
 ### Read All (DONE)
 ```
@@ -68,19 +73,35 @@ $directus->get_items('articles', array(
   )
 ));
 ```
-### Read By Primary Key(s) (TODO: Not yet completed)
+
+### Read By Primary Key(s)
 ```
-// Single
+// Single (DONE)
 $directus->get_items('articles', 15);
 
-// Multiple
+// Multiple (TODO: Not yet completed)
 $directus->get_items('articles', array(15, 42));
+```
+
+### Update an Item
+```
+$directus->update_items('articles', array("title" => "example_new"), ID/'UUID');
+```
+
+### Delete an Item
+```
+$directus->delete_items('articles', ID/'UUID');
+```
+
+### Delete multiple Items
+```
+$directus->delete_items('articles', array('UUID', 'UUID2', ID, ID2));
 ```
 
 
 ## Auth
 
-### Login (TODO: Not yet completed)
+### Login (DONE)
 
 ```
 $directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
@@ -90,19 +111,19 @@ $directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
 
 By default the SDK will call a new
 
-### Logout (TODO: Not yet completed)
+### Logout (DONE)
 
 ```
 $directus->auth_logout();
 ```
 
-### Request a Password Reset (TODO: Not yet completed)
+### Request a Password Reset (DONE)
 The second value is optional if you want to sent a custom return URL for the reset email.
 ```
 $directus->auth_password_request('demo@slations.co.uk', 'https://example.com/comfirm');
 ```
 
-### Reset a Password (TODO: Not yet completed)
+### Reset a Password (DONE)
 Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
 ```
 $directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd');
