@@ -1,26 +1,19 @@
-# PLEASE DOWNLOAD THE LATEST RELEASE
-
 <p align="center"><img width="400" alt="Logo" src="https://cdn.slations.co.uk/images/Slations-Logo.svg"></p>
 
 <br>
 
 # Directus PHP SDK
 
-The Slations unofficial PHP SDK for Directus 9
+The Slations unofficial PHP SDK for Directus 9 - I am working on tidying up these docs but it's 1:30AM and I need some sleep... or coffee so please bare with me :)
 
 
 # Documentation
 
-## Installation (DONE)
+## Installation
 
-To install the Directus PHP SDK is super simple and easy. First download the latest release from the releases section of Github and extract the files. Then copy the following files into your project and your ready to get started.
-```
-Desired Folder
-|- Directus.php
-```
+To install the Directus PHP SDK is super simple and easy. All you need to do is download the latest release from the releases page and place the PHP file in your 
 
-## Usage (DONE)
-
+## Usage
 ```
 <?php 
 
@@ -37,10 +30,14 @@ $directus->config([
 ```
 
 
+## Config Options
+
+
+
+
 ## Global
 
-### Getting the API URL (DONE)
-
+### Getting the API URL
 ```
 $directus->base_url;
 ```
@@ -48,7 +45,7 @@ $directus->base_url;
 
 ## Items
 
-### Create Single Item (DONE)
+### Create a Single Item
 ```
 $directus->create_items('articles', array(
   "status" => "draft",
@@ -57,7 +54,7 @@ $directus->create_items('articles', array(
 ));
 ```
 
-### Read All (DONE)
+### Read All Items
 ```
 $directus->get_items('articles');
 ```
@@ -76,43 +73,49 @@ $directus->get_items('articles', array(
 
 ### Read By Primary Key(s)
 ```
-// Single (DONE)
+// Single
 $directus->get_items('articles', 15);
 
 // Multiple (TODO: Not yet completed)
 $directus->get_items('articles', array(15, 42));
 ```
 
-### Update an Item
+### Update a Single Item
 ```
-$directus->update_items('articles', array("title" => "example_new"), ID/'UUID');
-```
-
-### Delete an Item
-```
-$directus->delete_items('articles', ID/'UUID');
+$directus->update_items('articles', array("title" => "example_new"), 15);
 ```
 
-### Delete multiple Items
+### Delete an Item(s)
 ```
-$directus->delete_items('articles', array('UUID', 'UUID2', ID, ID2));
+// One
+$directus->delete_items('articles', 15);
+
+// Multiple
+$directus->delete_items('articles', array(15, 42));
 ```
 
 
 ## Auth
 
-### Login (DONE)
+### Get / Set Token
+Setting a static auth token, if someone authenticates their authentication will override this auth token!
+```
+$directus->auth_token('abc.def.ghi');
 
+$directus->auth_token;
+```
+
+### Login
+When you submit a login request it will either respone with en error "errors" or it will just return true. If it has returned try then the login was successful and the Auth has been stored using the method defined in the config (_SESSION by default). The login with AutoRefresh so you will not need to worry about the token expiring.
 ```
 $directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
 ```
 
-### Refresh (TODO: Not yet completed)
+### Refresh
 
-By default the SDK will call a new
+By default the SDK will auto refresh every fifteen minuites so the token is never expired. We will add the ability to turn off autoRefresh in the future.
 
-### Logout (DONE)
-
+### Logout
 ```
 $directus->auth_logout();
 ```
@@ -128,22 +131,3 @@ Note: the token passed in the first parameter is sent in an email to the user wh
 ```
 $directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd');
 ```
-
-## Users
-
-### Invite a New User (TODO: Not yet completed)
-
-
-### Accept a User Invite (TODO: Not yet completed)
-
-
-### Enable Two-Factor Authentication (TODO: Not yet completed)
-
-
-### Disable Two-Factor Authentication (TODO: Not yet completed)
-
-
-### Get the Current User (TODO: Not yet completed)
-
-
-### Update the Current Users (TODO: Not yet completed)

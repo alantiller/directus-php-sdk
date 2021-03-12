@@ -16,7 +16,7 @@ class DirectusSDK {
 
     public $base_url;
     private $auth_storage = '_SESSION';
-    private $api_auth_token = false;
+    public $auth_token = false;
     private $config_strip_headers;
 
     // Config Functions
@@ -29,7 +29,7 @@ class DirectusSDK {
     }
 
     public function auth_token($token) {
-        $this->api_auth_token = $token;
+        $this->auth_token = $token;
     }
 
     // Value Storage
@@ -86,8 +86,8 @@ class DirectusSDK {
                 endif;
             endif;
             return $this->get_value('directus_access');
-        elseif ($this->api_auth_token):
-            return $this->api_auth_token;
+        elseif ($this->auth_token):
+            return $this->auth_token;
         else:
             return false;
         endif;
