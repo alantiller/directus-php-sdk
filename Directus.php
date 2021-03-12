@@ -60,6 +60,15 @@ class DirectusSDK {
 	
     // Core Functions
 
+    private function is_array_numeric($data) {
+        foreach ($data as $item) {
+            if (!is_int($item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private function get_access_token() {
         if(($this->auth_storage === '_SESSION' || $this->auth_storage === '_COOKIE') && $this->get_value('directus_refresh') != NULL):
             if ($this->get_value('directus_access_expires') < time() - 50):
@@ -104,8 +113,6 @@ class DirectusSDK {
 
     private function make_call($request, $data = false, $method = 'GET') {
         $request = $this->base_url . $request; // add the base url to the requested uri
-        if ($data) // Check if any data has been passed
-            $data = json_encode($data); // JSON encoding the body data passed from the API
 
         $curl = curl_init(); // creates the curl
 
@@ -113,17 +120,17 @@ class DirectusSDK {
             case "POST":
                 curl_setopt($curl, CURLOPT_POST, 1);
                 if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
                 break;
             case "DELETE":
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
                 if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
                 break;
             case "PATCH":
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PATCH");
                 if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);			 					
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));			 					
                 break;
             default:
                 if ($data)
@@ -160,7 +167,7 @@ class DirectusSDK {
 
     public function get_items($collection, $data = false) {
         if(is_array($data)):
-            return $this->make_call('/items/' . $collection, $id, 'GET');
+            return $this->strip_headers($this->make_call('/items/' . $collection, $data, 'GET'));
         elseif(is_integer($data)):
             return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $data, false, 'GET'));
         else:
