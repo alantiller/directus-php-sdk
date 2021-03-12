@@ -32,7 +32,19 @@ $directus->config([
 
 ## Config Options
 
+### Get / Set API URL
+```
+"base_url" => "https://url.to.your.directus.install.io/"
+```
 
+### Setup the Auth Storage method
+```
+"auth_storage" => "_SESSION"
+```
+
+`_SESSION` - This stores the three Auth variables in a PHP Session on the server-side this is the most secure method but requires you to define a session `session_start();`
+
+`_COOKIE` - This stores the three Auth variables in Cookies on the client-side this can be useful if you need to retreve the access token from JS using cookies.
 
 
 ## Global
@@ -120,13 +132,13 @@ By default the SDK will auto refresh every fifteen minuites so the token is neve
 $directus->auth_logout();
 ```
 
-### Request a Password Reset (DONE)
+### Request a Password Reset
 The second value is optional if you want to sent a custom return URL for the reset email.
 ```
 $directus->auth_password_request('demo@slations.co.uk', 'https://example.com/comfirm');
 ```
 
-### Reset a Password (DONE)
+### Reset a Password
 Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
 ```
 $directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd');
