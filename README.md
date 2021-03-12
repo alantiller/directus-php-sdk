@@ -4,7 +4,7 @@
 
 # Directus PHP SDK
 
-The Slations unofficial PHP SDK for Directus 9 - I am working on tidying up these docs but it's 1:30AM and I need some sleep... or coffee so please bare with me :)
+The Slations unofficial PHP SDK for Directus 9
 
 
 # Documentation
@@ -71,28 +71,25 @@ $directus->create_items('articles', array(
 $directus->get_items('articles');
 ```
 
-### Read By Query (TODO: Not yet completed)
+### Read By Query
 ```
 $directus->get_items('articles', array(
   search => "",
   filter => array(
     "date_published" => array(
-      "_gte" => "$NOW"
+      "_gte" => "\$NOW" // If you use Directus provided dynamic options like $NOW make sure you ascape the item \$NOW so PHP knows it's not a PHP variable
     )
   )
 ));
 ```
 
-### Read By Primary Key(s)
+### Read By Primary Key
 ```
 // Single
 $directus->get_items('articles', 15);
-
-// Multiple (TODO: Not yet completed)
-$directus->get_items('articles', array(15, 42));
 ```
 
-### Update a Single Item
+### Update Single Item
 ```
 $directus->update_items('articles', array("title" => "example_new"), 15);
 ```
@@ -141,5 +138,5 @@ $directus->auth_password_request('demo@slations.co.uk', 'https://example.com/com
 ### Reset a Password
 Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
 ```
-$directus->auth_password_reset('the.id.passed.from.the.email', 'The1rN3wPa33W0rd');
+$directus->auth_password_reset('abc.def.ghi', 'N3wPa33W0rd');
 ```
