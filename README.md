@@ -31,7 +31,7 @@ $directus = new Directus(); // Create a new Directus SDK instance
 // Setup the config for the Directus SDK
 $directus->config([
   "base_url" => "https://url.to.your.directus.install.io/",
-  "auth_storage" => "$_SESSION" // This can be set to $_SESSION or if you want to store it as a cookie you can also use $_COOKIE
+  "auth_storage" => "_SESSION" // This can be set to _SESSION or if you want to store it as a cookie you can also use _COOKIE
 ]);
 
 ```
