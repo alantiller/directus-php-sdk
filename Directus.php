@@ -17,52 +17,52 @@ class DirectusSDK {
     public $base_url;
     private $auth_storage = '_SESSION';
     private $api_auth_token = false;
-	private $config_strip_headers;
+    private $config_strip_headers;
 
-	// Config Functions
+    // Config Functions
 	
     public function config($config) {
         // Set config entries as vars
         $this->base_url = rtrim($config['base_url'], '/'); // Added to remove trailing "/" if one exists
         $this->auth_storage = $config['auth_storage'];
-		$this->config_strip_headers = $config['strip_headers'];
+        $this->config_strip_headers = $config['strip_headers'];
     }
 
     public function auth_token($token) {
         $this->api_auth_token = $token;
     }
 
-	// Value Storage
+    // Value Storage
 	
-	private function set_value($key, $value) {
-		if($this->auth_storage === '_SESSION'):
-			$_SESSION[$key] = $value;
-		elseif($this->auth_storage === '_COOKIE'):
+    private function set_value($key, $value) {
+        if($this->auth_storage === '_SESSION'):
+            $_SESSION[$key] = $value;
+        elseif($this->auth_storage === '_COOKIE'):
             setcookie($key, $value, time() + 604800, "/");
-		endif;
-	}
+        endif;
+    }
 	
 	public function get_value($key) {
-		if($this->auth_storage === '_SESSION'):
-			return $_SESSION[$key];
-		elseif($this->auth_storage === '_COOKIE'):
-			return $_COOKIE[$key];
-		endif;
+        if($this->auth_storage === '_SESSION'):
+            return $_SESSION[$key];
+        elseif($this->auth_storage === '_COOKIE'):
+            return $_COOKIE[$key];
+        endif;
 	}
 
     private function unset_value($key) {
-		if($this->auth_storage === '_SESSION'):
-			unset($_SESSION[$key]);
-		elseif($this->auth_storage === '_COOKIE'):
-			setcookie($key, '', time() - 1, "/");
-		endif;
+        if($this->auth_storage === '_SESSION'):
+            unset($_SESSION[$key]);
+        elseif($this->auth_storage === '_COOKIE'):
+            setcookie($key, '', time() - 1, "/");
+        endif;
 	}
 	
     // Core Functions
 
     private function get_access_token() {
         if(($this->auth_storage === '_SESSION' || $this->auth_storage === '_COOKIE') && $this->get_value('directus_refresh') != NULL):
-			if ($this->get_value('directus_access_expires') < time() - 50):
+            if ($this->get_value('directus_access_expires') < time() - 50):
                 $curl = curl_init();
                 curl_setopt($curl, CURLOPT_POST, 1);
                 curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array("refresh_token" => $this->get_value('directus_refresh'))));
@@ -85,9 +85,9 @@ class DirectusSDK {
                     return false;
                 endif;
             endif;
-			return $this->get_value('directus_access');
+            return $this->get_value('directus_access');
         elseif ($this->api_auth_token):
-			return $this->api_auth_token;
+            return $this->api_auth_token;
         else:
             return false;
         endif;
@@ -95,9 +95,9 @@ class DirectusSDK {
 	
 	private function strip_headers($response) {
         if($this->config_strip_headers === false):
-			return $response;
+            return $response;
         else:
-			unset($response['headers']);
+            unset($response['headers']);
             return $response;
         endif;
     }
@@ -147,12 +147,12 @@ class DirectusSDK {
 	
         if ($http_error) {
             $result['errors'] = $http_error;
-			$result['headers'] = $http_headers;
+            $result['headers'] = $http_headers;
             return $result;
         } else {
             $result = json_decode($result, true);
-			$result['headers'] = $http_headers;
-			return $result;
+            $result['headers'] = $http_headers;
+            return $result;
         }	
     }
 
@@ -162,9 +162,9 @@ class DirectusSDK {
         if(is_array($data)):
             return $this->make_call('/items/' . $collection, $id, 'GET');
         elseif(is_integer($data)):
-			return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $data, false, 'GET'));
+            return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $data, false, 'GET'));
         else:
-			return $this->strip_headers($this->make_call('/items/' . $collection, false, 'GET'));
+            return $this->strip_headers($this->make_call('/items/' . $collection, false, 'GET'));
         endif;
     }
 
