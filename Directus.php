@@ -247,4 +247,27 @@ class DirectusSDK {
             return $this->strip_headers($response);
         endif;
     }
+
+    // Users
+
+
+    // Custom Calls - Add's the ability for user to call any endpoints that arn't included yet
+
+    public function get($uri, $data = false) {
+        return $this->strip_headers($this->make_call($uri, $data, 'GET'));
+    }
+
+    public function post($uri, $data = false) {
+        return $this->strip_headers($this->make_call($uri, $data, 'POST'));
+    }
+
+    public function patch($uri, $data = false) {
+        return $this->strip_headers($this->make_call($uri, $data, 'PATCH'));
+    }
+
+    public function delete($uri, $data = false) {
+        return $this->strip_headers($this->make_call($uri, $data, 'DELETE'));
+    }
+
+
 } ?>
