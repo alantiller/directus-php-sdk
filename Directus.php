@@ -250,6 +250,57 @@ class DirectusSDK {
 
     // Users
 
+    public function users_get($data = false) {
+        if(is_array($data)):
+            return $this->strip_headers($this->make_call('/users', $data, 'GET'));
+        elseif(is_integer($data) || is_string($data)):
+            return $this->strip_headers($this->make_call('/users/' . $data, false, 'GET'));
+        else:
+            return $this->strip_headers($this->make_call('/users', false, 'GET'));
+        endif;
+    }
+
+    public function users_create($fields) {
+        return $this->strip_headers($this->make_call('/users', $fields, 'POST'));
+    }
+
+    public function users_update($fields, $id = null) {
+        return $this->strip_headers($this->make_call('/users/' . $id, $fields, 'PATCH'));
+    }
+
+    public function users_delete($id) {
+        if(is_array($id)):
+            return $this->strip_headers($this->make_call('/users', $id, 'DELETE'));    
+        else:
+            return $this->strip_headers($this->make_call('/users/' . $id, false, 'DELETE'));
+        endif;
+    }
+
+    public function users_invite($email, $role, $invite_url = false) {
+        $data = array('email' => $email, 'role' => $role);
+        if($invite_url != false)
+            $data['invite_url'] = $invite_url;
+        $response = $this->make_call('/users/invite', $data, 'POST');
+        if($response['headers']['http_code'] === 200):
+            return true;
+        else:
+            return $this->strip_headers($response);
+        endif;
+    }
+
+    public function users_accept_invite($password, $token) {
+        $data = array('password' => $password, 'token' => $token);
+        $response = $this->make_call('/users/invite/accept', $data, 'POST');
+        if($response['headers']['http_code'] === 200):
+            return true;
+        else:
+            return $this->strip_headers($response);
+        endif;
+    }
+
+    public function users_me($filter = false) {
+        return $this->strip_headers($this->make_call('/users/me', $filter, 'GET'));
+    }
 
     // Custom Calls - Add's the ability for user to call any endpoints that arn't included yet
 
