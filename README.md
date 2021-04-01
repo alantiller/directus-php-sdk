@@ -19,7 +19,7 @@ To install the Directus PHP SDK is super simple and easy. All you need to do is 
 
 include 'Directus.php'; // Include the SDK Class 
 
-$directus = new Directus(); // Create a new Directus SDK instance
+$directus = new DirectusSDK(); // Create a new Directus SDK instance
 
 // Setup the config for the Directus SDK
 $directus->config([
