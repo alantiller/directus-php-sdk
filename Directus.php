@@ -19,15 +19,15 @@ class DirectusSDK {
 
     private $auth_domain = '/';
     private $auth_storage = '_SESSION';
-    private $strip_headers;
+    private $strip_headers = true;
 
     // Config Functions
 	
     public function config($config) {
         $this->base_url = rtrim($config['base_url'], '/'); // Added to remove trailing "/" if one exists
-        $this->auth_storage = $config['auth_storage'];
-        $this->strip_headers = $config['strip_headers'];
-        $this->auth_domain = $config['auth_domain'];
+        $this->auth_storage = isset($config['auth_storage']) ? $config['auth_storage'] : '_SESSION';
+        $this->strip_headers = isset($config['strip_headers']) ? $config['strip_headers'] : true;
+        $this->auth_domain = isset($config['auth_domain']) ? $config['auth_domain'] : '/';
     }
 
     public function auth_token($token) {
