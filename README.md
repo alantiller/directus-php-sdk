@@ -44,7 +44,7 @@ $directus->config([
 
 `_SESSION` - This stores the three Auth variables in a PHP Session on the server-side this is the most secure method but requires you to define a session `session_start();`
 
-`_COOKIE` - This stores the three Auth variables in Cookies on the client-side this can be useful if you need to retreve the access token from JS using cookies.
+`_COOKIE` - This stores the three Auth variables in Cookies on the client-side but will still store and use PHP Session on the server-side due to limitations in PHP Cookie support. This can be useful if you need to retreve the access token from JS using cookies.
 
 
 ## Global

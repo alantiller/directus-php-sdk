@@ -37,25 +37,19 @@ class DirectusSDK {
     // Value Storage
 	
     private function set_value($key, $value) {
-        if($this->auth_storage === '_SESSION'):
-            $_SESSION[$key] = $value;
-        elseif($this->auth_storage === '_COOKIE'):
+        $_SESSION[$key] = $value;
+        if($this->auth_storage === '_COOKIE'):
             setcookie($key, $value, time() + 604800, "/", $this->auth_domain);
         endif;
     }
 	
     public function get_value($key) {
-        if($this->auth_storage === '_SESSION'):
-            return $_SESSION[$key];
-        elseif($this->auth_storage === '_COOKIE'):
-            return $_COOKIE[$key];
-        endif;
+        return $_SESSION[$key];
     }
 
     private function unset_value($key) {
-        if($this->auth_storage === '_SESSION'):
-            unset($_SESSION[$key]);
-        elseif($this->auth_storage === '_COOKIE'):
+        unset($_SESSION[$key]);
+        if($this->auth_storage === '_COOKIE'):
             setcookie($key, '', time() - 1, "/", $this->auth_domain);
         endif;
     }
