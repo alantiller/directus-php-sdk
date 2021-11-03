@@ -14,18 +14,15 @@ The Slations unofficial PHP SDK for Directus 9
 To install the Directus PHP SDK is super simple and easy. All you need to do is download the latest release from the releases page and place the PHP file in your 
 
 ## Usage
+
+We've simplified the way you create a newinstance of the SDK, now you set the config settings in the construct rather than another function. You can still define the other variables as before in the construct as below.
+
 ```
 <?php 
 
 include 'Directus.php'; // Include the SDK Class 
 
-$directus = new DirectusSDK(); // Create a new Directus SDK instance
-
-// Setup the config for the Directus SDK
-$directus->config([
-  "base_url" => "https://url.to.your.directus.install.io/",
-  "auth_storage" => "_SESSION" // This can be set to _SESSION or if you want to store it as a cookie you can also use _COOKIE
-]);
+$directus = new Directus("https://url.to.your.directus.install.io/");
 
 ```
 
@@ -39,7 +36,7 @@ $directus->config([
 
 ### Setup the Auth Storage method
 ```
-"auth_storage" => "_SESSION"
+$directus = new Directus("https://url.to.your.directus.install.io/", "_SESSION");
 ```
 
 `_SESSION` - This stores the three Auth variables in a PHP Session on the server-side this is the most secure method but requires you to define a session `session_start();`

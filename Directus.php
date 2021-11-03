@@ -7,46 +7,36 @@
  * Designed to make talking to Directus in PHP easier, quicker
  * and much, much simpler.
  *
- * @copyright Copyright (c) 2021 Alan Tiller & Slations <alan@slations.co.uk>
+ * @copyright Copyright (c) 2021 Slations (Alan Tiller T/A) <alan@slations.co.uk>
  * @license GNU
  *
  */
 
-class DirectusSDK {
-
+class Directus {
     public $base_url;
     public $auth_token = false;
-
     private $auth_domain = '/';
     private $auth_storage = '_SESSION';
     private $strip_headers = true;
 
-    // Config Functions
-	
-    public function config($config) {
-        $this->base_url = rtrim($config['base_url'], '/'); // Added to remove trailing "/" if one exists
-        $this->auth_storage = isset($config['auth_storage']) ? $config['auth_storage'] : '_SESSION';
-        $this->strip_headers = isset($config['strip_headers']) ? $config['strip_headers'] : true;
-        $this->auth_domain = isset($config['auth_domain']) ? $config['auth_domain'] : '/';
-    }
-
-    public function auth_token($token) {
-        $this->auth_token = $token;
+    // Construct Function
+    public function __construct($base_url, $auth_storage = '_SESSION', $strip_headers = true, $auth_domain = '/') {
+        $this->base_url = rtrim($base_url, '/');
+        $this->auth_storage = $auth_storage;
+        $this->strip_headers = $strip_headers;
+        $this->auth_domain = $auth_domain;
     }
 
     // Value Storage
-	
     private function set_value($key, $value) {
         $_SESSION[$key] = $value;
         if($this->auth_storage === '_COOKIE'):
             setcookie($key, $value, time() + 604800, "/", $this->auth_domain);
         endif;
     }
-	
     public function get_value($key) {
         return $_SESSION[$key];
     }
-
     private function unset_value($key) {
         unset($_SESSION[$key]);
         if($this->auth_storage === '_COOKIE'):
@@ -55,7 +45,6 @@ class DirectusSDK {
     }
 	
     // Core Functions
-
     private function get_access_token() {
         if(($this->auth_storage === '_SESSION' || $this->auth_storage === '_COOKIE') && $this->get_value('directus_refresh') != NULL):
             if ($this->get_value('directus_access_expires') < time()):
@@ -87,7 +76,6 @@ class DirectusSDK {
             return false;
         endif;
     }
-	
     private function strip_headers($response) {
         if($this->strip_headers === false):
             return $response;
@@ -96,7 +84,6 @@ class DirectusSDK {
             return $response;
         endif;
     }
-
     private function make_call($request, $data = false, $method = 'GET', $bypass = false) {
         $request = $this->base_url . $request; // add the base url to the requested uri
 
@@ -149,8 +136,12 @@ class DirectusSDK {
         }	
     }
 
-    // Items
+    // Set Auth Token
+    public function auth_token($token) {
+        $this->auth_token = $token;
+    }
 
+    // Items
     public function get_items($collection, $data = false) {
         if(is_array($data)):
             return $this->strip_headers($this->make_call('/items/' . $collection, $data, 'GET'));
@@ -160,11 +151,9 @@ class DirectusSDK {
             return $this->strip_headers($this->make_call('/items/' . $collection, false, 'GET'));
         endif;
     }
-
     public function create_items($collection, $fields) {
         return $this->strip_headers($this->make_call('/items/' . $collection, $fields, 'POST'));
     }
-
     public function update_items($collection, $fields, $id = null) {
         if ($id != NULL):
             return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $id, $fields, 'PATCH'));
@@ -172,7 +161,6 @@ class DirectusSDK {
             return $this->strip_headers($this->make_call('/items/' . $collection, $fields, 'PATCH'));
         endif;
     }
-
     public function delete_items($collection, $id) {
         if(is_array($id)):
             return $this->strip_headers($this->make_call('/items/' . $collection, $id, 'DELETE'));    
@@ -182,7 +170,6 @@ class DirectusSDK {
     }
 
     // Auth
-
     public function auth_user($email, $password, $otp = false) {
         $data = array('email' => $email, 'password' => $password);
         
@@ -205,7 +192,6 @@ class DirectusSDK {
             return $this->strip_headers($response);
         endif;
     }
-
     public function auth_logout() {
         $data = array("refresh_token" => $this->get_value('directus_refresh'));
         $response = $this->make_call('/auth/logout', $data, 'POST', true);
@@ -219,7 +205,6 @@ class DirectusSDK {
             return $this->strip_headers($response);
         endif;   
     }
-
     public function auth_password_request($email, $reset_url = false) {
         $data = array('email' => $email);
         if($reset_url != false)
@@ -231,7 +216,6 @@ class DirectusSDK {
             return $this->strip_headers($response);
         endif;
     }
-
     public function auth_password_reset($token, $password) {
         $data = array('token' => $token, 'password' => $password);
         $response = $this->make_call('/auth/password/reset', $data, 'POST');
@@ -243,7 +227,6 @@ class DirectusSDK {
     }
 
     // Users
-
     public function users_get($data = false) {
         if(is_array($data)):
             return $this->strip_headers($this->make_call('/users', $data, 'GET'));
@@ -253,15 +236,12 @@ class DirectusSDK {
             return $this->strip_headers($this->make_call('/users', false, 'GET'));
         endif;
     }
-
     public function users_create($fields) {
         return $this->strip_headers($this->make_call('/users', $fields, 'POST'));
     }
-
     public function users_update($fields, $id = null) {
         return $this->strip_headers($this->make_call('/users/' . $id, $fields, 'PATCH'));
     }
-
     public function users_delete($id) {
         if(is_array($id)):
             return $this->strip_headers($this->make_call('/users', $id, 'DELETE'));    
@@ -269,7 +249,6 @@ class DirectusSDK {
             return $this->strip_headers($this->make_call('/users/' . $id, false, 'DELETE'));
         endif;
     }
-
     public function users_invite($email, $role, $invite_url = false) {
         $data = array('email' => $email, 'role' => $role);
         if($invite_url != false)
@@ -281,7 +260,6 @@ class DirectusSDK {
             return $this->strip_headers($response);
         endif;
     }
-
     public function users_accept_invite($password, $token) {
         $data = array('password' => $password, 'token' => $token);
         $response = $this->make_call('/users/invite/accept', $data, 'POST');
@@ -291,28 +269,21 @@ class DirectusSDK {
             return $this->strip_headers($response);
         endif;
     }
-
     public function users_me($filter = false) {
         return $this->strip_headers($this->make_call('/users/me', $filter, 'GET'));
     }
 
-    // Custom Calls - Add's the ability for user to call any endpoints that arn't included yet
-
+    // Custom Calls
     public function get($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'GET'));
     }
-
     public function post($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'POST'));
     }
-
     public function patch($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'PATCH'));
     }
-
     public function delete($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'DELETE'));
     }
-
-
 } ?>
