@@ -20,7 +20,7 @@ class Directus {
     private $strip_headers = true;
 
     // Construct Function
-    public function __construct($base_url, $auth_storage = '_SESSION', $strip_headers = true, $auth_domain = '/') {
+    public function __construct($base_url, $auth_storage = '_SESSION', $auth_domain = '/', $strip_headers = true) {
         $this->base_url = rtrim($base_url, '/');
         $this->auth_storage = $auth_storage;
         $this->strip_headers = $strip_headers;
