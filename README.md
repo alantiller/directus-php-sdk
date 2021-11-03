@@ -38,9 +38,9 @@ $directus = new Directus(option1*, option2, option3, option4);
 ```
 
 ### Option 1* | Set API URL
-```
-"base_url" => "https://url.to.your.directus.install.io/"
-```
+
+You set the root URL to your directus installation, this field is required for the SDK to work.
+
 
 ### Option 2 | Set Auth Storage
 
@@ -50,9 +50,11 @@ The default is currently `_SESSION` but can be changed the the following options
 
 `_COOKIE` - This stores the three Auth variables in Cookies on the client-side but will still store and use PHP Session on the server-side due to limitations in PHP Cookie support. This can be useful if you need to retreve the access token from JS using cookies.
 
+
 ### Option 3 | Set Auth Domain
 
 This one is only used if option 2 has been set to `_COOKIE`. This sets the root auth domain of the cookie. By default it is `/` so it applies to the whole site but can be set to a folder if you only want the user to be authenticated in the subdirectory.
+
 
 ### Option 4 | Set Strip Headers
 
