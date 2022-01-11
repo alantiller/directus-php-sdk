@@ -308,12 +308,12 @@ class Directus {
     }
 
 	
-	// Files
+    // Files
     public function files_get($uri, $data = false) {
         return $this->strip_headers($this->make_call('/files', null, 'GET'));
     }
     public function files_create($file, $folder = null, $storage = 'local') {
-		$data = array("file" => $file, "storage" => $storage, "folder" => $folder);
+        $data = array("file" => $file, "storage" => $storage, "folder" => $folder);
         return $this->strip_headers($this->make_call('/files', $data, 'POST_MULTIPART'));
     }
 	
