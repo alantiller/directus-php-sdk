@@ -88,29 +88,63 @@ class Directus {
         $request = $this->base_url . $request; // add the base url to the requested uri
 
         $curl = curl_init(); // creates the curl
-
+		$headers = array();
+		
         switch ($method) {
             case "POST":
                 curl_setopt($curl, CURLOPT_POST, 1);
+				array_push($headers, "Content-Type: application/json");
                 if ($data)
                     curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
                 break;
             case "DELETE":
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+				array_push($headers, "Content-Type: application/json");
                 if ($data)
                     curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
                 break;
             case "PATCH":
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+				array_push($headers, "Content-Type: application/json");
                 if ($data)
                     curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));			 					
                 break;
+			case "POST_MULTIPART":
+				$fields = array("storage" => $data["storage"], "download_filename" => $data["file"]["name"]);
+				if ($data["folder"] != null) {$fields["folder"] = $data["folder"];}
+				
+				$boundary = uniqid();
+				$delimiter = '-------------' . $boundary;
+				$eol = "\r\n";
+				$post_data = '';
+				
+				// Add fields
+				foreach ($fields as $name => $content) {
+					$post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="' 
+					. $name . "\"" . $eol . $eol . $content . $eol;
+				}
+		
+				// Include File
+				$post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="' 
+				. $data["file"]["name"] . '"; filename="' . $data["file"]["name"] . '"' . $eol 
+				. 'Content-Type: ' . mime_content_type($_FILES["file"]['tmp_name']) . $eol 
+				. 'Content-Transfer-Encoding: binary' . $eol;
+				$post_data .= $eol;
+				$post_data .= file_get_contents($data["file"]["tmp_name"]) . $eol;
+				$post_data .= "--" . $delimiter . "--".$eol;			
+				
+				curl_setopt($curl, CURLOPT_POST, 1);
+				curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+				curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);			
+				array_push($headers, "Content-Type: multipart/form-data; boundary=" . $delimiter);
+				array_push($headers, "Content-Length: " . strlen($post_data));
+				break;
             default:
                 if ($data)
                     $request = sprintf("%s?%s", $request, http_build_query($data));
         }
 
-        $headers = array('Content-Type: application/json');
+        
         if(($auth_token != false || $this->get_value('directus_refresh')) && $bypass == false)
             array_push($headers, "Authorization: Bearer " . $this->get_access_token());
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
@@ -273,6 +307,17 @@ class Directus {
         return $this->strip_headers($this->make_call('/users/me', $filter, 'GET'));
     }
 
+	
+	// Files
+    public function files_get($uri, $data = false) {
+        return $this->strip_headers($this->make_call('/files', null, 'GET'));
+    }
+    public function files_create($file, $folder = null, $storage = 'local') {
+		$data = array("file" => $file, "storage" => $storage, "folder" => $folder);
+        return $this->strip_headers($this->make_call('/files', $data, 'POST_MULTIPART'));
+    }
+	
+	
     // Custom Calls
     public function get($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'GET'));
