@@ -3,7 +3,7 @@
 /*
  * Directus Class
  *
- * The main class of the unoffical Directus PHP SDK.
+ * The main class of the unofficial Directus PHP SDK.
  * Designed to make talking to Directus in PHP easier, quicker
  * and much, much simpler.
  *
@@ -11,7 +11,6 @@
  * @license GNU
  *
  */
-
 class Directus {
     public $base_url;
     public $auth_token = false;
@@ -34,9 +33,11 @@ class Directus {
             setcookie($key, $value, time() + 604800, "/", $this->auth_domain);
         endif;
     }
+
     public function get_value($key) {
         return $_SESSION[$key];
     }
+
     private function unset_value($key) {
         unset($_SESSION[$key]);
         if($this->auth_storage === '_COOKIE'):
