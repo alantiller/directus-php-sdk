@@ -87,6 +87,7 @@ class Directus {
     }
     private function make_call($request, $data = false, $method = 'GET', $bypass = false) {
         $request = $this->base_url . $request; // add the base url to the requested uri
+        $auth_token = $this->auth_token;
 
         $curl = curl_init(); // creates the curl
 		$headers = array();
