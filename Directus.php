@@ -43,7 +43,7 @@ class Directus {
             setcookie($key, '', time() - 1, "/", $this->auth_domain);
         endif;
     }
-	
+
     // Core Functions
     private function get_access_token() {
         if(($this->auth_storage === '_SESSION' || $this->auth_storage === '_COOKIE') && $this->get_value('directus_refresh') != NULL):
@@ -89,7 +89,7 @@ class Directus {
 
         $curl = curl_init(); // creates the curl
 		$headers = array();
-		
+
         switch ($method) {
             case "POST":
                 curl_setopt($curl, CURLOPT_POST, 1);
@@ -107,23 +107,23 @@ class Directus {
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PATCH");
 				array_push($headers, "Content-Type: application/json");
                 if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));			 					
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
                 break;
 			case "POST_MULTIPART":
 				$fields = array("storage" => $data["storage"], "download_filename" => $data["file"]["name"]);
 				if ($data["folder"] != null) {$fields["folder"] = $data["folder"];}
-				
+
 				$boundary = uniqid();
 				$delimiter = '-------------' . $boundary;
 				$eol = "\r\n";
 				$post_data = '';
-				
+
 				// Add fields
 				foreach ($fields as $name => $content) {
 					$post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="' 
 					. $name . "\"" . $eol . $eol . $content . $eol;
 				}
-		
+
 				// Include File
 				$post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="' 
 				. $data["file"]["name"] . '"; filename="' . $data["file"]["name"] . '"' . $eol 
@@ -131,11 +131,11 @@ class Directus {
 				. 'Content-Transfer-Encoding: binary' . $eol;
 				$post_data .= $eol;
 				$post_data .= file_get_contents($data["file"]["tmp_name"]) . $eol;
-				$post_data .= "--" . $delimiter . "--".$eol;			
-				
+				$post_data .= "--" . $delimiter . "--".$eol;
+
 				curl_setopt($curl, CURLOPT_POST, 1);
 				curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-				curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);			
+				curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
 				array_push($headers, "Content-Type: multipart/form-data; boundary=" . $delimiter);
 				array_push($headers, "Content-Length: " . strlen($post_data));
 				break;
@@ -144,7 +144,6 @@ class Directus {
                     $request = sprintf("%s?%s", $request, http_build_query($data));
         }
 
-        
         if(($auth_token != false || $this->get_value('directus_refresh')) && $bypass == false)
             array_push($headers, "Authorization: Bearer " . $this->get_access_token());
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
@@ -156,9 +155,9 @@ class Directus {
 
         $http_headers = curl_getinfo($curl);
         $http_error = curl_errno($curl);
-        
+
         curl_close($curl);
-	
+
         if ($http_error) {
             $result['errors'] = $http_error;
             $result['headers'] = $http_headers;
@@ -167,7 +166,7 @@ class Directus {
             $result = json_decode($result, true);
             $result['headers'] = $http_headers;
             return $result;
-        }	
+        }
     }
 
     // Set Auth Token
@@ -185,9 +184,11 @@ class Directus {
             return $this->strip_headers($this->make_call('/items/' . $collection, false, 'GET'));
         endif;
     }
+
     public function create_items($collection, $fields) {
         return $this->strip_headers($this->make_call('/items/' . $collection, $fields, 'POST'));
     }
+
     public function update_items($collection, $fields, $id = null) {
         if ($id != NULL):
             return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $id, $fields, 'PATCH'));
@@ -195,6 +196,7 @@ class Directus {
             return $this->strip_headers($this->make_call('/items/' . $collection, $fields, 'PATCH'));
         endif;
     }
+
     public function delete_items($collection, $id) {
         if(is_array($id)):
             return $this->strip_headers($this->make_call('/items/' . $collection, $id, 'DELETE'));    
@@ -226,6 +228,7 @@ class Directus {
             return $this->strip_headers($response);
         endif;
     }
+
     public function auth_logout() {
         $data = array("refresh_token" => $this->get_value('directus_refresh'));
         $response = $this->make_call('/auth/logout', $data, 'POST', true);
@@ -239,6 +242,7 @@ class Directus {
             return $this->strip_headers($response);
         endif;   
     }
+
     public function auth_password_request($email, $reset_url = false) {
         $data = array('email' => $email);
         if($reset_url != false)
@@ -250,6 +254,7 @@ class Directus {
             return $this->strip_headers($response);
         endif;
     }
+
     public function auth_password_reset($token, $password) {
         $data = array('token' => $token, 'password' => $password);
         $response = $this->make_call('/auth/password/reset', $data, 'POST');
@@ -270,12 +275,15 @@ class Directus {
             return $this->strip_headers($this->make_call('/users', false, 'GET'));
         endif;
     }
+
     public function users_create($fields) {
         return $this->strip_headers($this->make_call('/users', $fields, 'POST'));
     }
+
     public function users_update($fields, $id = null) {
         return $this->strip_headers($this->make_call('/users/' . $id, $fields, 'PATCH'));
     }
+
     public function users_delete($id) {
         if(is_array($id)):
             return $this->strip_headers($this->make_call('/users', $id, 'DELETE'));    
@@ -283,6 +291,7 @@ class Directus {
             return $this->strip_headers($this->make_call('/users/' . $id, false, 'DELETE'));
         endif;
     }
+
     public function users_invite($email, $role, $invite_url = false) {
         $data = array('email' => $email, 'role' => $role);
         if($invite_url != false)
@@ -294,6 +303,7 @@ class Directus {
             return $this->strip_headers($response);
         endif;
     }
+
     public function users_accept_invite($password, $token) {
         $data = array('password' => $password, 'token' => $token);
         $response = $this->make_call('/users/invite/accept', $data, 'POST');
@@ -303,11 +313,11 @@ class Directus {
             return $this->strip_headers($response);
         endif;
     }
+
     public function users_me($filter = false) {
         return $this->strip_headers($this->make_call('/users/me', $filter, 'GET'));
     }
 
-	
     // Files
     public function files_get($uri, $data = false) {
         return $this->strip_headers($this->make_call('/files', null, 'GET'));
@@ -316,19 +326,22 @@ class Directus {
         $data = array("file" => $file, "storage" => $storage, "folder" => $folder);
         return $this->strip_headers($this->make_call('/files', $data, 'POST_MULTIPART'));
     }
-	
-	
+
+
     // Custom Calls
     public function get($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'GET'));
     }
+
     public function post($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'POST'));
     }
+
     public function patch($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'PATCH'));
     }
+
     public function delete($uri, $data = false) {
         return $this->strip_headers($this->make_call($uri, $data, 'DELETE'));
     }
-} ?>
+}
