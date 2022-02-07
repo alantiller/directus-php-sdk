@@ -12,7 +12,8 @@
     "autoload": {
         "psr-4": {
             "Slations\\DirectusSdk\\": "src/"
-        }
+        },
+        "files": ["src/Directus.php"]
     },
     "require": {
         "ext-curl": "*",
