@@ -41,7 +41,7 @@ class Directus
 
     public function get_value($key)
     {
-        return $_SESSION[$key];
+        return $_SESSION[$key] ?? null;
     }
 
     private function unset_value($key)
