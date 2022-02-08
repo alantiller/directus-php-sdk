@@ -15,6 +15,7 @@
         },
         "files": ["src/Directus.php"]
     },
+    "minimum-stability": "stable",
     "require": {
         "ext-curl": "*",
         "php": "^7.0"
