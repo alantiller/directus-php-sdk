@@ -1,5 +1,7 @@
 <?php
 
+namespace Slations\DirectusSdk;
+
 /*
  * Directus Class
  *
@@ -11,7 +13,6 @@
  * @license GNU
  *
  */
-
 class Directus
 {
     public $base_url;
