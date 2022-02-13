@@ -1,0 +1,23 @@
+{
+    "name": "slations/directus-php-sdk",
+    "description": "The Slations unofficial PHP SDK for Directus 9",
+    "type": "library",
+    "license": "MIT",
+    "authors" : [
+        {
+            "name": "Alan Tiller",
+            "email": "alan@slations.co.uk"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Slations\\DirectusSdk\\": "src/"
+        },
+        "files": ["src/Directus.php"]
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "ext-curl": "*",
+        "php": "^7.0"
+    }
+}
