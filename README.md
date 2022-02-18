@@ -1,4 +1,4 @@
-<p align="center"><img width="400" alt="Logo" src="https://cdn.slations.co.uk/images/Slations-Logo.svg"></p>
+<p align="center"><img width="300" alt="Logo" src="https://cdn.slations.co.uk/images/Slations-Logo.svg"></p>
 
 <br>
 
@@ -9,7 +9,13 @@ The Slations unofficial PHP SDK for Directus 9
 
 # Documentation
 
-## Installation
+## Installation (Composer)
+
+We're now on composer!!! Making installation even easier, all you have to do is include our package `slations/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
+
+Or you can run `composer require slations/directus-php-sdk` and that will do all of the above for you :)
+
+## Installation (Manual)
 
 To install the Directus PHP SDK is super simple and easy. All you need to do is download the latest release from the releases page and place the PHP file in your 
 
@@ -20,11 +26,15 @@ We've simplified the way you create a newinstance of the SDK, now you set the co
 ```
 <?php 
 
-include 'Directus.php'; // Include the SDK Class 
+include 'Directus.php'; // Include the SDK Class - MANUAL
 
-$directus = new Directus("https://url.to.your.directus.install.io/");
+include 'vendor/autoload.php'; // Include the composer autoload - COMPOSER
+
+$directus = new Slations\DirectusSdk\Directus("https://url.to.your.directus.install.io/");
 
 ```
+
+Personally I perfer to set the namespace when creating a new instance as I think it is cleaner but it's down to personal preference.
 
 
 ## Config Options
@@ -34,7 +44,7 @@ $directus = new Directus("https://url.to.your.directus.install.io/");
 There are currently four config options a user can set, these need to be set in the order below. Options with a start by the title are required the rest are optional.
 
 ```
-$directus = new Directus(option1*, option2, option3, option4);
+$directus = new Slations\DirectusSdk\Directus(option1*, option2, option3, option4);
 ```
 
 ### Option 1* | Set API URL
