@@ -355,7 +355,12 @@ class Directus
     // Files
     public function files_get($uri, $data = false)
     {
-        return $this->strip_headers($this->make_call('/files', null, 'GET'));
+        if (is_integer($data) || is_string($data)):
+            return $this->strip_headers($this->make_call('/files/' . $data, false, 'GET'));
+        else:
+            return $this->strip_headers($this->make_call('/files', false, 'GET'));
+        endif;
+       
     }
 
     public function files_create($file, $folder = null, $storage = 'local')
