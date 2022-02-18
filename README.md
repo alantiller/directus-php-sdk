@@ -11,7 +11,7 @@ The Slations unofficial PHP SDK for Directus 9
 
 ## Installation (Composer)
 
-We're now on composer!!! Making installation even easier, all you have to do is include our package `slations/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
+We're now on packagist!!! Making installation even easier, all you have to do is include our package `slations/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
 
 Or you can run `composer require slations/directus-php-sdk` and that will do all of the above for you :)
 
