@@ -353,7 +353,7 @@ class Directus
     }
 
     // Files
-    public function files_get($uri, $data = false)
+    public function files_get($data = false)
     {
         if (is_string($data)):
             return $this->strip_headers($this->make_call('/files/' . $data, false, 'GET'));
@@ -367,6 +367,20 @@ class Directus
     {
         $data = array("file" => $file, "storage" => $storage, "folder" => $folder);
         return $this->strip_headers($this->make_call('/files', $data, 'POST_MULTIPART'));
+    }
+    
+     public function files_update($id, $fields)
+    {
+        return $this->strip_headers($this->make_call('/files/' . $id, $fields, 'PATCH'));
+    }
+
+    public function files_delete($id)
+    {
+        if (is_array($id)):
+            return $this->strip_headers($this->make_call('/files', $id, 'DELETE'));
+        else:
+            return $this->strip_headers($this->make_call('/files/' . $id, false, 'DELETE'));
+        endif;
     }
 
 
