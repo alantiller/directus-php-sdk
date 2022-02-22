@@ -17,23 +17,25 @@ class Directus
 {
     public $base_url;
     public $auth_token = false;
-    private $auth_domain = '/';
-    private $auth_storage = '_SESSION';
-    private $strip_headers = true;
+    private $auth_prefix;
+    private $auth_domain;
+    private $auth_storage;
+    private $strip_headers;
 
     // Construct Function
-    public function __construct($base_url, $auth_storage = '_SESSION', $auth_domain = '/', $strip_headers = true)
+    public function __construct($base_url, $auth_prefix, $auth_storage = '_SESSION', $auth_domain = '/', $strip_headers = true)
     {
         $this->base_url = rtrim($base_url, '/');
         $this->auth_storage = $auth_storage;
         $this->strip_headers = $strip_headers;
         $this->auth_domain = $auth_domain;
+        $this->auth_prefix = $auth_prefix;
     }
 
     // Value Storage
     private function set_value($key, $value)
     {
-        $_SESSION[$key] = $value;
+        $_SESSION[$this->auth_prefix . $key] = $value;
         if ($this->auth_storage === '_COOKIE'):
             setcookie($key, $value, time() + 604800, "/", $this->auth_domain);
         endif;
@@ -41,12 +43,12 @@ class Directus
 
     public function get_value($key)
     {
-        return $_SESSION[$key] ?? null;
+        return $_SESSION[$this->auth_prefix . $key] ?? null;
     }
 
     private function unset_value($key)
     {
-        unset($_SESSION[$key]);
+        unset($_SESSION[$this->auth_prefix . $key]);
         if ($this->auth_storage === '_COOKIE'):
             setcookie($key, '', time() - 1, "/", $this->auth_domain);
         endif;
