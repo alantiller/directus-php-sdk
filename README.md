@@ -1,17 +1,13 @@
-<p align="center"><img width="300" alt="Logo" src="https://cdn.slations.co.uk/images/Slations-Logo.svg"></p>
-
-<br>
-
 # Directus PHP SDK
 
-The Slations unofficial PHP SDK for Directus 9
+The PHP SDK for Directus 9
 
 
 # Documentation
 
 ## Installation (Composer)
 
-We're now on packagist!!! Making installation even easier, all you have to do is include our package `slations/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
+We're now on packagist!!! Making installation even easier, all you have to do is include our package `alantiller/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
 
 Or you can run `composer require slations/directus-php-sdk` and that will do all of the above for you :)
 
