@@ -1,6 +1,6 @@
 # Directus PHP SDK
 
-The PHP SDK for Directus 9
+The PHP SDK for Directus 9 (@directus/directus)
 
 
 # Documentation
