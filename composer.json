@@ -1,5 +1,5 @@
 {
-    "name": "slations/directus-php-sdk",
+    "name": "alantiller/directus-php-sdk",
     "description": "The Slations unofficial PHP SDK for Directus 9",
     "type": "library",
     "license": "MIT",
