@@ -1,165 +1,231 @@
 # Directus PHP SDK
 
-The PHP SDK for Directus 9 (@directus/directus)
+> The Directus PHP SDK provides an intuitive interface for the Directus 9 API 
+> from within a PHP-powered project. (https://github.com/directus/directus)
 
+## Installation
 
-# Documentation
-
-## Installation (Composer)
-
-We're now on packagist!!! Making installation even easier, all you have to do is include our package `alantiller/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
-
-Or you can run `composer require slations/directus-php-sdk` and that will do all of the above for you :)
-
-## Installation (Manual)
-
-To install the Directus PHP SDK is super simple and easy. All you need to do is download the latest release from the releases page and place the PHP file in your 
+```
+composer require alantiller/directus-php-sdk
+```
 
 ## Usage
 
-We've simplified the way you create a newinstance of the SDK, now you set the config settings in the construct rather than another function. You can still define the other variables as before in the construct as below.
+```php
+include 'vendor/autoload.php';
 
-```
-<?php 
-
-include 'Directus.php'; // Include the SDK Class - MANUAL
-
-include 'vendor/autoload.php'; // Include the composer autoload - COMPOSER
-
-$directus = new Slations\DirectusSdk\Directus("https://url.to.your.directus.install.io/");
-
+$directus = new \AlanTiller\DirectusSdk\Directus("https://admin.directus.io");
 ```
 
-Personally I perfer to set the namespace when creating a new instance as I think it is cleaner but it's down to personal preference.
+## Reference
 
+### Constructor
 
-## Config Options
+This is the starting point to use the SDK. You need to create an instance and invoke methods from it. In most cases a
+single instance is sufficient, but in case you need more, you need to define
+the `storage_prefix` option.
 
-### Setting the options
+> Please note that from v2.0.0 onwards the option to store values as cookies has 
+> been depricated. This is for security purpouses. If you need the tokens stored 
+> as cookies please set them maunally.
 
-There are currently four config options a user can set, these need to be set in the order below. Options with a start by the title are required the rest are optional.
+```php 
+include 'vendor/autoload.php';
 
-```
-$directus = new Slations\DirectusSdk\Directus(option1*, option2*, option3, option4, option5);
-```
-
-### Option 1* | Set API URL
-
-You set the root URL to your directus installation, this field is required for the SDK to work.
-
-### Option 2* | Set Auth Prefix
-
-You set the auth prefix for your directus instance, this is so the SDK can differentiate between two instances running in parallel
-
-### Option 3 | Set Auth Storage
-
-The default is currently `_SESSION` but can be changed the the following options to fit the end users needs.
-
-`_SESSION` - This stores the three Auth variables in a PHP Session on the server-side this is the most secure method but requires you to define a session `session_start();`
-
-`_COOKIE` - This stores the three Auth variables in Cookies on the client-side but will still store and use PHP Session on the server-side due to limitations in PHP Cookie support. This can be useful if you need to retreve the access token from JS using cookies.
-
-
-### Option 4 | Set Auth Domain
-
-This one is only used if option 2 has been set to `_COOKIE`. This sets the root auth domain of the cookie. By default it is `/` so it applies to the whole site but can be set to a folder if you only want the user to be authenticated in the subdirectory.
-
-
-### Option 5 | Set Strip Headers
-
-This option is mainly for development which is why it has been put at the end but the request passed back to the user can contain the headers as well as the content in the array. The default value is `true` but can be set to `false` if you need access to the headers of the request.
-
-
-
-## Global
-
-### Getting the API URL
-```
-$directus->base_url;
+$directus = new \AlanTiller\DirectusSdk\Directus($base_url, $storage_prefix);
 ```
 
+- `base_url` [required] _String_ - A string pointing to your Directus instance. E.g. `https://admin.directus.io`
 
-## Items
-
-### Create a Single Item
-```
-$directus->create_items('articles', array(
-  "status" => "draft",
-  "title" => "example",
-  "slug" => "example"
-));
-```
-
-### Read All Items
-```
-$directus->get_items('articles');
-```
-
-### Read By Query
-```
-$directus->get_items('articles', array(
-  search => "",
-  filter => array(
-    "date_published" => array(
-      "_gte" => "\$NOW" // If you use Directus provided dynamic options like $NOW make sure you ascape the item \$NOW so PHP knows it's not a PHP variable
-    )
-  )
-));
-```
-
-### Read By Primary Key
-```
-$directus->get_items('articles', 15);
-```
-
-### Update Single Item
-```
-$directus->update_items('articles', array("title" => "example_new"), 15);
-```
-
-### Delete an Item(s)
-```
-// One
-$directus->delete_items('articles', 15);
-
-// Multiple
-$directus->delete_items('articles', array(15, 42));
-```
-
+- `storage_prefix` [optional] _String_ - ToDo
 
 ## Auth
 
-### Get / Set Token
-Setting a static auth token, if someone authenticates their authentication will override this auth token!
-```
-$directus->auth_token('abc.def.ghi');
+Defines how authentication is handled by the SDK.
 
-$directus->auth_token;
+### Get current token
+
+```php
+$token = $directus->auth()->token;
 ```
 
 ### Login
-When you submit a login request it will either respone with en error "errors" or it will just return true. If it has returned try then the login was successful and the Auth has been stored using the method defined in the config (_SESSION by default). The login with AutoRefresh so you will not need to worry about the token expiring.
-```
-$directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
+
+#### With credentials
+
+```php
+$directus->auth()->login([
+	'email' => 'admin@example.com',
+	'password' => 'd1r3ctu5'
+]);
 ```
 
-### Refresh
+#### With static tokens
 
-By default the SDK will auto refresh every fifteen minuites so the token is never expired. We will add the ability to turn off autoRefresh in the future.
+```php
+$directus->auth()->static('static_token');
+```
 
 ### Logout
-```
-$directus->auth_logout();
+
+```php
+$directus->auth()->logout();
 ```
 
-### Request a Password Reset
-The second value is optional if you want to sent a custom return URL for the reset email.
+## Items
+
+You can get an instance of the item handler by providing the collection to the
+`items` function. The following examples will use the `Article` type.
+
+```php
+include 'vendor/autoload.php';
+
+$directus = new \AlanTiller\DirectusSdk\Directus('http://admin.directus.io');
+
+$articles = $directus->items('articles');
 ```
-$directus->auth_password_request('demo@slations.co.uk', 'https://example.com/comfirm');
+ 
+### Create Single Item
+
+```php
+$articles->create([
+    'title' => 'My New Article'
+]);
 ```
 
-### Reset a Password
-Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
+### Create Multiple Items
+
+```js
+await articles.createMany([
+	{
+		title: 'My First Article',
+	},
+	{
+		title: 'My Second Article',
+	},
+]);
 ```
-$directus->auth_password_reset('abc.def.ghi', 'N3wPa33W0rd');
+
+### Read By Query
+
+```js
+await articles.readByQuery({
+	search: 'Directus',
+	filter: {
+		date_published: {
+			_gte: '$NOW',
+		},
+	},
+});
+```
+
+### Read All
+
+```js
+await articles.readByQuery({
+	// By default API limits results to 100.
+	// With -1, it will return all results, but it may lead to performance degradation
+	// for large result sets.
+	limit: -1,
+});
+```
+
+### Read Single Item
+
+```js
+await articles.readOne(15);
+```
+
+Supports optional query:
+
+```js
+await articles.readOne(15, {
+	fields: ['title'],
+});
+```
+
+### Read Multiple Items
+
+```js
+await articles.readMany([15, 16, 17]);
+```
+
+Supports optional query:
+
+```js
+await articles.readMany([15, 16, 17], {
+	fields: ['title'],
+});
+```
+
+### Update Single Item
+
+```js
+await articles.updateOne(15, {
+	title: 'This articles now has a different title',
+});
+```
+
+Supports optional query:
+
+```js
+await articles.updateOne(
+	42,
+	{
+		title: 'This articles now has a similar title',
+	},
+	{
+		fields: ['title'],
+	}
+);
+```
+
+### Update Multiple Items
+
+```js
+await articles.updateMany([15, 42], {
+	title: 'Both articles now have the same title',
+});
+```
+
+Supports optional query:
+
+```js
+await articles.updateMany(
+	[15, 42],
+	{
+		title: 'Both articles now have the same title',
+	},
+	{
+		fields: ['title'],
+	}
+);
+```
+
+### Delete
+
+```js
+// One
+await articles.deleteOne(15);
+
+// Multiple
+await articles.deleteMany([15, 42]);
+```
+
+### Request Parameter Overrides
+
+To override any of the axios request parameters, provide an additional parameter with a `requestOptions` object:
+
+```js
+await articles.createOne(
+	{ title: 'example' },
+	{ fields: ['id'] },
+	{
+		requestOptions: {
+			headers: {
+				'X-My-Custom-Header': 'example',
+			},
+		},
+	}
+);
 ```

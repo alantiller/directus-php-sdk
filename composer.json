@@ -6,14 +6,13 @@
     "authors" : [
         {
             "name": "Alan Tiller",
-            "email": "github@alantiller.com"
+            "email": "alan.tiller@gmx.co.uk"
         }
     ],
     "autoload": {
         "psr-4": {
             "Slations\\DirectusSdk\\": "src/"
-        },
-        "files": ["src/Directus.php"]
+        }
     },
     "minimum-stability": "stable",
     "require": {
