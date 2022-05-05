@@ -14,7 +14,7 @@
     "prefer-lowest": false,
     "platform": {
         "ext-curl": "*",
-        "php": "^7.0"
+        "php": "^7.0|^8.0"
     },
     "platform-dev": [],
     "plugin-api-version": "2.2.0"
