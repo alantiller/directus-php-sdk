@@ -9,7 +9,7 @@ The PHP SDK for Directus 9 (@directus/directus)
 
 We're now on packagist!!! Making installation even easier, all you have to do is include our package `alantiller/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
 
-Or you can run `composer require slations/directus-php-sdk` and that will do all of the above for you :)
+Or you can run `composer require alantiller/directus-php-sdk` and that will do all of the above for you :)
 
 ## Installation (Manual)
 
