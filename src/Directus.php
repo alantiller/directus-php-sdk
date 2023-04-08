@@ -145,7 +145,7 @@ class Directus
                 // Include File
                 $post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="'
                     . $data["file"]["name"] . '"; filename="' . $data["file"]["name"] . '"' . $eol
-                    . 'Content-Type: ' . mime_content_type($_FILES["file"]['tmp_name']) . $eol
+                    . 'Content-Type: ' . mime_content_type($data["file"]['tmp_name']) . $eol
                     . 'Content-Transfer-Encoding: binary' . $eol;
                 $post_data .= $eol;
                 $post_data .= file_get_contents($data["file"]["tmp_name"]) . $eol;
@@ -362,7 +362,6 @@ class Directus
         else:
             return $this->strip_headers($this->make_call('/files', false, 'GET'));
         endif;
-       
     }
 
     public function files_create($file, $folder = null, $storage = 'local')
@@ -370,7 +369,7 @@ class Directus
         $data = array("file" => $file, "storage" => $storage, "folder" => $folder);
         return $this->strip_headers($this->make_call('/files', $data, 'POST_MULTIPART'));
     }
-    
+
      public function files_update($id, $fields)
     {
         return $this->strip_headers($this->make_call('/files/' . $id, $fields, 'PATCH'));
