@@ -1,5 +1,30 @@
-.idea
+# OS-specific files
+.DS_Store
+Thumbs.db
 
-/vendor/
+# Dependency directories
+node_modules/
+vendor/
 
-README-FULL.md
+# Log files
+*.log
+*.cache
+
+# Build and distribution
+dist/
+build/
+
+# Composer files
+composer.lock
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.suo
+*.user
+*.sw?
+
+# Temporary files
+*.tmp
+*.bak
+*.old
