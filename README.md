@@ -1,6 +1,3 @@
-Okay, Alan, I can help you rewrite the README to document the SDK in detail, including installation and usage instructions. Here's a comprehensive README.md file:
-
-```markdown
 # Directus PHP SDK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,25 +6,29 @@ A PHP SDK for interacting with the Directus API. This SDK provides a convenient 
 
 ## Table of Contents
 
--   [Features](#features)
--   [Requirements](#requirements)
--   [Installation](#installation)
--   [Configuration](#configuration)
--   [Usage](#usage)
-    -   [Authentication](#authentication)
-    -   [Items](#items)
-    -   [Users](#users)
-    -   [Files](#files)
-    -   [Other Endpoints](#other-endpoints)
-    -   [Custom Calls](#custom-calls)
--   [Storage](#storage)
-    -   [Session Storage](#session-storage)
-    -   [Cookie Storage](#cookie-storage)
-    -   [Custom Storage](#custom-storage)
--   [Error Handling](#error-handling)
--   [Testing](#testing)
--   [Contributing](#contributing)
--   [License](#license)
+- [Directus PHP SDK](#directus-php-sdk)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Usage](#usage)
+    - [Authentication](#authentication)
+      - [API Key Authentication](#api-key-authentication)
+      - [User/Password Authentication](#userpassword-authentication)
+    - [Items](#items)
+    - [Users](#users)
+    - [Files](#files)
+    - [Other Endpoints](#other-endpoints)
+    - [Custom Calls](#custom-calls)
+  - [Storage](#storage)
+    - [Session Storage](#session-storage)
+    - [Cookie Storage](#cookie-storage)
+    - [Custom Storage](#custom-storage)
+  - [Error Handling](#error-handling)
+  - [Testing](#testing)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Features
 
@@ -400,12 +401,3 @@ Contributions are welcome! Please submit a pull request with your changes.
 ## License
 
 The Directus PHP SDK is licensed under the [MIT License](LICENSE).
-```
-
-**Key improvements:**
-
-*   **Comprehensive documentation:** The README provides detailed documentation for all aspects of the SDK, including installation, configuration, usage, storage, error handling, and testing.
-*   **Clear examples:** The README includes clear and concise examples for all common operations.
-*   **Well-organized structure:** The README is well-organized and easy to navigate.
-
-This README should provide users with all the information they need to get started with the Directus PHP SDK.
