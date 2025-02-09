@@ -1,165 +1,411 @@
+Okay, Alan, I can help you rewrite the README to document the SDK in detail, including installation and usage instructions. Here's a comprehensive README.md file:
+
+```markdown
 # Directus PHP SDK
 
-The PHP SDK for Directus 9 (@directus/directus)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+A PHP SDK for interacting with the Directus API. This SDK provides a convenient and object-oriented way to access Directus endpoints and perform common operations.
 
-# Documentation
+## Table of Contents
 
-## Installation (Composer)
+-   [Features](#features)
+-   [Requirements](#requirements)
+-   [Installation](#installation)
+-   [Configuration](#configuration)
+-   [Usage](#usage)
+    -   [Authentication](#authentication)
+    -   [Items](#items)
+    -   [Users](#users)
+    -   [Files](#files)
+    -   [Other Endpoints](#other-endpoints)
+    -   [Custom Calls](#custom-calls)
+-   [Storage](#storage)
+    -   [Session Storage](#session-storage)
+    -   [Cookie Storage](#cookie-storage)
+    -   [Custom Storage](#custom-storage)
+-   [Error Handling](#error-handling)
+-   [Testing](#testing)
+-   [Contributing](#contributing)
+-   [License](#license)
 
-We're now on packagist!!! Making installation even easier, all you have to do is include our package `alantiller/directus-php-sdk` in your `composer.json` file `^1.0` for the version and then run composer update.
+## Features
 
-Or you can run `composer require alantiller/directus-php-sdk` and that will do all of the above for you :)
+-   Object-oriented interface for interacting with the Directus API
+-   Supports all Directus endpoints (Items, Files, Users, etc.)
+-   Supports multiple authentication methods (API Key, User/Password)
+-   Customizable storage for authentication tokens (Session, Cookie, Custom)
+-   Easy-to-use methods for common CRUD operations (Create, Read, Update, Delete)
+-   Comprehensive error handling
 
-## Installation (Manual)
+## Requirements
 
-To install the Directus PHP SDK is super simple and easy. All you need to do is download the latest release from the releases page and place the PHP file in your 
+-   PHP 8.0 or higher
+-   Composer
+-   Guzzle HTTP client (`guzzlehttp/guzzle`)
+
+## Installation
+
+1.  Install the SDK using Composer:
+
+    ```bash
+    composer require alantiller/directus-php-sdk
+    ```
+
+## Configuration
+
+Before using the SDK, you need to configure it with your Directus base URL and authentication details.
+
+1.  **Base URL:** The base URL of your Directus instance (e.g., `https://your-directus-instance.com`).
+2.  **Storage:** Choose a storage mechanism for authentication tokens (Session, Cookie, or Custom).
+3.  **Authentication:** Choose an authentication method and provide the necessary credentials.
 
 ## Usage
 
-We've simplified the way you create a newinstance of the SDK, now you set the config settings in the construct rather than another function. You can still define the other variables as before in the construct as below.
+### Authentication
 
-```
-<?php 
+The SDK supports multiple authentication methods:
 
-include 'Directus.php'; // Include the SDK Class - MANUAL
+#### API Key Authentication
 
-include 'vendor/autoload.php'; // Include the composer autoload - COMPOSER
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Auth\ApiKeyAuth;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
 
-$directus = new Slations\DirectusSdk\Directus("https://url.to.your.directus.install.io/");
+$baseUrl = 'https://your-directus-instance.com';
+$apiKey = 'YOUR_API_KEY';
 
-```
+$storage = new SessionStorage('directus_'); // Optional prefix
+$auth = new ApiKeyAuth($apiKey);
 
-Personally I perfer to set the namespace when creating a new instance as I think it is cleaner but it's down to personal preference.
-
-
-## Config Options
-
-### Setting the options
-
-There are currently four config options a user can set, these need to be set in the order below. Options with a start by the title are required the rest are optional.
-
-```
-$directus = new Slations\DirectusSdk\Directus(option1*, option2*, option3, option4, option5);
+$directus = new Directus(
+    $baseUrl,
+    $storage,
+    $auth
+);
 ```
 
-### Option 1* | Set API URL
+#### User/Password Authentication
 
-You set the root URL to your directus installation, this field is required for the SDK to work.
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Auth\UserPasswordAuth;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
 
-### Option 2* | Set Auth Prefix
+$baseUrl = 'https://your-directus-instance.com';
+$username = 'your_email@example.com';
+$password = 'your_password';
 
-You set the auth prefix for your directus instance, this is so the SDK can differentiate between two instances running in parallel
+$storage = new SessionStorage('directus_'); // Optional prefix
+$auth = new UserPasswordAuth($baseUrl, $username, $password);
 
-### Option 3 | Set Auth Storage
+$directus = new Directus(
+    $baseUrl,
+    $storage,
+    $auth
+);
 
-The default is currently `_SESSION` but can be changed the the following options to fit the end users needs.
-
-`_SESSION` - This stores the three Auth variables in a PHP Session on the server-side this is the most secure method but requires you to define a session `session_start();`
-
-`_COOKIE` - This stores the three Auth variables in Cookies on the client-side but will still store and use PHP Session on the server-side due to limitations in PHP Cookie support. This can be useful if you need to retreve the access token from JS using cookies.
-
-
-### Option 4 | Set Auth Domain
-
-This one is only used if option 2 has been set to `_COOKIE`. This sets the root auth domain of the cookie. By default it is `/` so it applies to the whole site but can be set to a folder if you only want the user to be authenticated in the subdirectory.
-
-
-### Option 5 | Set Strip Headers
-
-This option is mainly for development which is why it has been put at the end but the request passed back to the user can contain the headers as well as the content in the array. The default value is `true` but can be set to `false` if you need access to the headers of the request.
-
-
-
-## Global
-
-### Getting the API URL
-```
-$directus->base_url;
+// Authenticate the user
+try {
+    $directus->authenticate();
+} catch (\Exception $e) {
+    echo "Authentication failed: " . $e->getMessage() . PHP_EOL;
+}
 ```
 
+### Items
 
-## Items
+The `items` endpoint allows you to manage items in a specific collection.
 
-### Create a Single Item
-```
-$directus->create_items('articles', array(
-  "status" => "draft",
-  "title" => "example",
-  "slug" => "example"
-));
-```
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
 
-### Read All Items
-```
-$directus->get_items('articles');
-```
+$baseUrl = 'https://your-directus-instance.com';
+$storage = new SessionStorage('directus_');
 
-### Read By Query
-```
-$directus->get_items('articles', array(
-  search => "",
-  filter => array(
-    "date_published" => array(
-      "_gte" => "\$NOW" // If you use Directus provided dynamic options like $NOW make sure you ascape the item \$NOW so PHP knows it's not a PHP variable
-    )
-  )
-));
-```
+$directus = new Directus(
+    $baseUrl,
+    $storage
+);
 
-### Read By Primary Key
-```
-$directus->get_items('articles', 15);
-```
+$collection = 'your_collection';
+$items = $directus->items($collection);
 
-### Update Single Item
-```
-$directus->update_items('articles', array("title" => "example_new"), 15);
-```
+// Get all items
+$all_items = $items->get();
+print_r($all_items);
 
-### Delete an Item(s)
-```
-// One
-$directus->delete_items('articles', 15);
+// Get a specific item
+$item = $items->get(1);
+print_r($item);
 
-// Multiple
-$directus->delete_items('articles', array(15, 42));
+// Create a new item
+$new_item = $items->create(['name' => 'New Item', 'status' => 'published']);
+print_r($new_item);
+
+// Update an existing item
+$updated_item = $items->update(['name' => 'Updated Item'], 1);
+print_r($updated_item);
+
+// Delete an item
+$deleted_item = $items->delete(1);
+print_r($deleted_item);
 ```
 
+### Users
 
-## Auth
+The `users` endpoint allows you to manage users in your Directus instance.
 
-### Get / Set Token
-Setting a static auth token, if someone authenticates their authentication will override this auth token!
-```
-$directus->auth_token('abc.def.ghi');
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
 
-$directus->auth_token;
+$baseUrl = 'https://your-directus-instance.com';
+$storage = new SessionStorage('directus_');
+
+$directus = new Directus(
+    $baseUrl,
+    $storage
+);
+
+$users = $directus->users();
+
+// Get all users
+$all_users = $users->get();
+print_r($all_users);
+
+// Get a specific user
+$user = $users->get('user_id');
+print_r($user);
+
+// Create a new user
+$new_user = $users->create([
+    'first_name' => 'John',
+    'last_name' => 'Doe',
+    'email' => 'john.doe@example.com',
+    'password' => 'password123',
+    'role' => 'administrator'
+]);
+print_r($new_user);
+
+// Update an existing user
+$updated_user = $users->update([
+    'first_name' => 'Jane',
+    'last_name' => 'Doe'
+], 'user_id');
+print_r($updated_user);
+
+// Delete a user
+$deleted_user = $users->delete('user_id');
+print_r($deleted_user);
 ```
 
-### Login
-When you submit a login request it will either respone with en error "errors" or it will just return true. If it has returned try then the login was successful and the Auth has been stored using the method defined in the config (_SESSION by default). The login with AutoRefresh so you will not need to worry about the token expiring.
-```
-$directus->auth_user('demo@slations.co.uk', 'Pa33w0rd');
+### Files
+
+The `files` endpoint allows you to manage files in your Directus instance.
+
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
+
+$baseUrl = 'https://your-directus-instance.com';
+$storage = new SessionStorage('directus_');
+
+$directus = new Directus(
+    $baseUrl,
+    $storage
+);
+
+$files = $directus->files();
+
+// Get all files
+$all_files = $files->get();
+print_r($all_files);
+
+// Get a specific file
+$file = $files->get('file_id');
+print_r($file);
+
+// Create a new file
+$file_path = '/path/to/your/file.jpg';
+$new_file = $files->create([
+    'name' => basename($file_path),
+    'tmp_name' => $file_path,
+]);
+print_r($new_file);
+
+// Update an existing file
+$updated_file = $files->update('file_id', ['title' => 'New Title']);
+print_r($updated_file);
+
+// Delete a file
+$deleted_file = $files->delete('file_id');
+print_r($deleted_file);
 ```
 
-### Refresh
+### Other Endpoints
 
-By default the SDK will auto refresh every fifteen minuites so the token is never expired. We will add the ability to turn off autoRefresh in the future.
+The SDK provides access to all Directus endpoints, including:
 
-### Logout
-```
-$directus->auth_logout();
+-   `activity()`
+-   `collections()`
+-   `comments()`
+-   `contentVersions()`
+-   `dashboards()`
+-   `extensions()`
+-   `fields(string $collection)`
+-   `flows()`
+-   `folders()`
+-   `notifications()`
+-   `operations()`
+-   `panels()`
+-   `permissions()`
+-   `policies()`
+-   `presets()`
+-   `relations()`
+-   `revisions()`
+-   `roles()`
+-   `schema()`
+-   `server()`
+-   `settings()`
+-   `shares()`
+-   `translations()`
+-   `utilities()`
+
+Each endpoint provides methods for performing common operations, such as `get`, `create`, `update`, and `delete`. Refer to the Directus API documentation for more information on each endpoint and its available methods.
+
+### Custom Calls
+
+You can make custom API calls using the `makeCustomCall` method:
+
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
+
+$baseUrl = 'https://your-directus-instance.com';
+$storage = new SessionStorage('directus_');
+
+$directus = new Directus(
+    $baseUrl,
+    $storage
+);
+
+$uri = '/your/custom/endpoint';
+$data = ['param1' => 'value1', 'param2' => 'value2'];
+$method = 'GET';
+
+$response = $directus->makeCustomCall($uri, $data, $method);
+print_r($response);
 ```
 
-### Request a Password Reset
-The second value is optional if you want to sent a custom return URL for the reset email.
-```
-$directus->auth_password_request('demo@slations.co.uk', 'https://example.com/comfirm');
+## Storage
+
+The SDK uses a `StorageInterface` to store authentication tokens. You can choose between session storage, cookie storage, or implement your own custom storage mechanism.
+
+### Session Storage
+
+Session storage uses PHP sessions to store authentication tokens. This is the default storage mechanism.
+
+```php
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
+
+$storage = new SessionStorage('directus_'); // Optional prefix
 ```
 
-### Reset a Password
-Note: the token passed in the first parameter is sent in an email to the user when using `auth_password_request`
+### Cookie Storage
+
+Cookie storage uses cookies to store authentication tokens.
+
+```php
+use AlanTiller\DirectusSdk\Storage\CookieStorage;
+
+$storage = new CookieStorage('directus_', '/'); // Optional prefix and domain
 ```
-$directus->auth_password_reset('abc.def.ghi', 'N3wPa33W0rd');
+
+### Custom Storage
+
+You can implement your own custom storage mechanism by creating a class that implements the `StorageInterface`.
+
+```php
+use AlanTiller\DirectusSdk\Storage\StorageInterface;
+
+class MyCustomStorage implements StorageInterface
+{
+    public function set(string $key, $value): void
+    {
+        // Store the value
+    }
+
+    public function get(string $key)
+    {
+        // Retrieve the value
+    }
+
+    public function delete(string $key): void
+    {
+        // Delete the value
+    }
+}
+
+$storage = new MyCustomStorage();
 ```
+
+## Error Handling
+
+The SDK throws exceptions for API errors. You can catch these exceptions and handle them appropriately.
+
+```php
+use AlanTiller\DirectusSdk\Directus;
+use AlanTiller\DirectusSdk\Storage\SessionStorage;
+use AlanTiller\DirectusSdk\Exceptions\DirectusException;
+
+$baseUrl = 'https://your-directus-instance.com';
+$storage = new SessionStorage('directus_');
+
+$directus = new Directus(
+    $baseUrl,
+    $storage
+);
+
+try {
+    $items = $directus->items('your_collection')->get();
+    print_r($items);
+} catch (DirectusException $e) {
+    echo "API error: " . $e->getMessage() . PHP_EOL;
+}
+```
+
+## Testing
+
+The SDK includes a set of Pest PHP tests to ensure that it functions correctly. To run the tests, follow these steps:
+
+1.  Install Pest PHP:
+
+    ```bash
+    composer require pestphp/pest --dev
+    ```
+
+2.  Run the tests:
+
+    ```bash
+    ./vendor/bin/pest
+    ```
+
+## Contributing
+
+Contributions are welcome! Please submit a pull request with your changes.
+
+## License
+
+The Directus PHP SDK is licensed under the [MIT License](LICENSE).
+```
+
+**Key improvements:**
+
+*   **Comprehensive documentation:** The README provides detailed documentation for all aspects of the SDK, including installation, configuration, usage, storage, error handling, and testing.
+*   **Clear examples:** The README includes clear and concise examples for all common operations.
+*   **Well-organized structure:** The README is well-organized and easy to navigate.
+
+This README should provide users with all the information they need to get started with the Directus PHP SDK.

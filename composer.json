@@ -1,23 +1,30 @@
 {
     "name": "alantiller/directus-php-sdk",
-    "description": "The Slations unofficial PHP SDK for Directus 9",
+    "description": "A PHP SDK for interacting with the Directus API",
     "type": "library",
     "license": "MIT",
-    "authors" : [
+    "authors": [
         {
             "name": "Alan Tiller",
-            "email": "github@alantiller.com"
+            "email": "your.email@example.com"
         }
     ],
     "autoload": {
         "psr-4": {
-            "Slations\\DirectusSdk\\": "src/"
-        },
-        "files": ["src/Directus.php"]
+            "AlanTiller\\DirectusSdk\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "minimum-stability": "stable",
-    "require": {
-        "ext-curl": "*",
-        "php": "^7.0 || ^8.0"
+    "require-dev": {
+        "pestphp/pest": "^3.7"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }

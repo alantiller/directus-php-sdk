@@ -1,408 +1,433 @@
 <?php
 
-namespace Slations\DirectusSdk;
+namespace AlanTiller\DirectusSdk;
 
-/*
- * Directus Class
- *
- * The main class of the unofficial Directus PHP SDK.
- * Designed to make talking to Directus in PHP easier, quicker
- * and much, much simpler.
- *
- * @copyright Copyright (c) 2021 Slations (Alan Tiller T/A) <alan@slations.co.uk>
- * @license GNU
- *
- */
+use AlanTiller\DirectusSdk\Auth\AuthInterface;
+use AlanTiller\DirectusSdk\Auth\UserPasswordAuth;
+use AlanTiller\DirectusSdk\Endpoints\ActivityEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\CollectionsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\CommentsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\ContentVersionsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\DashboardsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\ExtensionsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\FieldsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\FilesEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\FlowsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\FoldersEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\ItemsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\NotificationsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\OperationsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\PanelsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\PermissionsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\PoliciesEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\PresetsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\RelationsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\RevisionsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\RolesEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\SchemaEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\ServerEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\SettingsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\SharesEndpoint;
+use AlanTiller\DirectusSdk\Storage\StorageInterface;
+use AlanTiller\DirectusSdk\Endpoints\TranslationsEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\UsersEndpoint;
+use AlanTiller\DirectusSdk\Endpoints\UtilitiesEndpoint;
+use AlanTiller\DirectusSdk\Exceptions\DirectusException;
+use GuzzleHttp\Client;
+use Psr\Http\Message\ResponseInterface;
+
 class Directus
 {
-    public $base_url;
-    public $auth_token = false;
-    private $auth_prefix;
-    private $auth_domain;
-    private $auth_storage;
-    private $strip_headers;
+    private string $baseUrl;
+    private ?AuthInterface $auth = null;
+    private ?string $accessToken = null;
+    private Client $client;
+    private StorageInterface $storage;
+    private bool $stripHeaders;
 
-    // Construct Function
-    public function __construct($base_url, $auth_prefix, $auth_storage = '_SESSION', $auth_domain = '/', $strip_headers = true)
-    {
-        $this->base_url = rtrim($base_url, '/');
-        $this->auth_storage = $auth_storage;
-        $this->strip_headers = $strip_headers;
-        $this->auth_domain = $auth_domain;
-        $this->auth_prefix = $auth_prefix;
+    /**
+     * Directus constructor.
+     *
+     * @param string $baseUrl
+     * @param StorageInterface $storage
+     * @param AuthInterface|null $auth
+     * @param boolean $stripHeaders
+     */
+    public function __construct(string $baseUrl, StorageInterface $storage, ?AuthInterface $auth = null, bool $stripHeaders = true) {
+        $this->baseUrl = rtrim($baseUrl, '/');
+        $this->storage = $storage;
+        $this->auth = $auth;
+        $this->stripHeaders = $stripHeaders;
+
+        $this->client = new Client([
+            'base_uri' => $this->baseUrl,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        // Attempt to authenticate if possible
+        if ($this->auth) {
+            try {
+                $this->authenticate();
+            } catch (\Exception $e) {
+                // Handle authentication failure (e.g., log the error)
+                error_log('Authentication failed during Directus instantiation: ' . $e->getMessage());
+            }
+        }
     }
 
-    // Value Storage
-    private function set_value($key, $value)
+    public function authenticate(): void
     {
-        $_SESSION[$this->auth_prefix . $key] = $value;
-        if ($this->auth_storage === '_COOKIE'):
-            setcookie($key, $value, time() + 604800, "/", $this->auth_domain);
-        endif;
+        if ($this->auth) {
+            $this->accessToken = $this->auth->authenticate();
+            $this->client = new Client([
+                'base_uri' => $this->baseUrl,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->accessToken,
+                ],
+            ]);
+        }
     }
 
-    public function get_value($key)
+    public function refreshToken(): void
     {
-        return $_SESSION[$this->auth_prefix . $key] ?? null;
+        if ($this->auth instanceof UserPasswordAuth) {
+            $newToken = $this->auth->refreshToken();
+            if ($newToken) {
+                $this->accessToken = $newToken;
+                $this->client = new Client([
+                    'base_uri' => $this->baseUrl,
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                        'Authorization' => 'Bearer ' . $this->accessToken,
+                    ],
+                ]);
+            }
+        }
     }
 
-    private function unset_value($key)
+    private function getAccessToken()
     {
-        unset($_SESSION[$this->auth_prefix . $key]);
-        if ($this->auth_storage === '_COOKIE'):
-            setcookie($key, '', time() - 1, "/", $this->auth_domain);
-        endif;
-    }
-
-    // Core Functions
-    private function get_access_token()
-    {
-        if (($this->auth_storage === '_SESSION' || $this->auth_storage === '_COOKIE') && $this->get_value('directus_refresh') != NULL):
-            if ($this->get_value('directus_access_expires') < time()):
-                $refresh = curl_init($this->base_url . '/auth/refresh');
+        if ($this->storage->get('directus_refresh') != null) {
+            if ($this->storage->get('directus_access_expires') < time()) {
+                $refresh = curl_init($this->baseUrl . '/auth/refresh');
                 curl_setopt($refresh, CURLOPT_POST, 1);
-                curl_setopt($refresh, CURLOPT_POSTFIELDS, json_encode(array("refresh_token" => $this->get_value('directus_refresh'))));
+                curl_setopt(
+                    $refresh,
+                    CURLOPT_POSTFIELDS,
+                    json_encode(['refresh_token' => $this->storage->get('directus_refresh')])
+                );
                 curl_setopt($refresh, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($refresh, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                curl_setopt($refresh, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                 $response = curl_exec($refresh);
                 $httpcode = curl_getinfo($refresh, CURLINFO_HTTP_CODE);
                 curl_close($refresh);
-                if ($httpcode == 200):
+                if ($httpcode == 200) {
                     $response = json_decode($response, true);
-                    $this->set_value('directus_refresh', $response['data']['refresh_token']);
-                    $this->set_value('directus_access', $response['data']['access_token']);
+                    $this->storage->set('directus_refresh', $response['data']['refresh_token']);
+                    $this->storage->set('directus_access', $response['data']['access_token']);
                     $expires = $response['data']['expires'] / 1000;
                     $expires = time() + $expires;
-                    $this->set_value('directus_access_expires', $expires);
+                    $this->storage->set('directus_access_expires', $expires);
                     return $response['data']['access_token'];
-                else:
-                    $this->auth_logout();
+                } else {
+                    $this->authLogout();
                     return false;
-                endif;
-            endif;
-            return $this->get_value('directus_access');
-        elseif ($this->auth_token):
-            return $this->auth_token;
-        else:
+                }
+            }
+            return $this->storage->get('directus_access');
+        } elseif ($this->accessToken) {
+            return $this->accessToken;
+        } else {
             return false;
-        endif;
+        }
     }
 
-    private function strip_headers($response)
+    private function stripHeaders(array $response): array
     {
-        if ($this->strip_headers === false):
+        if ($this->stripHeaders === false) {
             return $response;
-        else:
+        } else {
             unset($response['headers']);
             return $response;
-        endif;
+        }
     }
 
-    private function make_call($request, $data = false, $method = 'GET', $bypass = false)
+    private function makeCall(string $request, mixed $data = false, string $method = 'GET', bool $bypass = false, bool $multipart = false)
     {
-        $request = $this->base_url . $request; // add the base url to the requested uri
-        $auth_token = $this->auth_token;
+        $request = $this->baseUrl . $request; // add the base url to the requested uri
 
-        $curl = curl_init(); // creates the curl
-        $headers = array();
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
 
-        switch ($method) {
-            case "POST":
-                curl_setopt($curl, CURLOPT_POST, 1);
-                array_push($headers, "Content-Type: application/json");
-                if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-                break;
-            case "DELETE":
-                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-                array_push($headers, "Content-Type: application/json");
-                if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-                break;
-            case "PATCH":
-                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PATCH");
-                array_push($headers, "Content-Type: application/json");
-                if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-                break;
-            case "POST_MULTIPART":
-                $fields = array("storage" => $data["storage"], "download_filename" => $data["file"]["name"]);
-                if ($data["folder"] != null) {
-                    $fields["folder"] = $data["folder"];
-                }
-
-                $boundary = uniqid();
-                $delimiter = '-------------' . $boundary;
-                $eol = "\r\n";
-                $post_data = '';
-
-                // Add fields
-                foreach ($fields as $name => $content) {
-                    $post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="'
-                        . $name . "\"" . $eol . $eol . $content . $eol;
-                }
-
-                // Include File
-                $post_data .= "--" . $delimiter . $eol . 'Content-Disposition: form-data; name="'
-                    . $data["file"]["name"] . '"; filename="' . $data["file"]["name"] . '"' . $eol
-                    . 'Content-Type: ' . mime_content_type($data["file"]['tmp_name']) . $eol
-                    . 'Content-Transfer-Encoding: binary' . $eol;
-                $post_data .= $eol;
-                $post_data .= file_get_contents($data["file"]["tmp_name"]) . $eol;
-                $post_data .= "--" . $delimiter . "--" . $eol;
-
-                curl_setopt($curl, CURLOPT_POST, 1);
-                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-                array_push($headers, "Content-Type: multipart/form-data; boundary=" . $delimiter);
-                array_push($headers, "Content-Length: " . strlen($post_data));
-                break;
-            default:
-                if ($data)
-                    $request = sprintf("%s?%s", $request, http_build_query($data));
+        if (($this->accessToken != false || $this->storage->get('directus_refresh')) && $bypass == false) {
+            $accessToken = $this->getAccessToken();
+            if ($accessToken) {
+                $headers['Authorization'] = 'Bearer ' . $accessToken;
+            }
         }
 
-        if (($auth_token != false || $this->get_value('directus_refresh')) && $bypass == false) {
-            array_push($headers, "Authorization: Bearer " . $this->get_access_token());
+        $options = [
+            'headers' => $headers,
+        ];
+
+        try {
+            switch ($method) {
+                case 'POST':
+                    $options['json'] = $data;
+                    $response = $this->client->post($request, $options);
+                    break;
+                case 'DELETE':
+                    $options['json'] = $data;
+                    $response = $this->client->delete($request, $options);
+                    break;
+                case 'PATCH':
+                    $options['json'] = $data;
+                    $response = $this->client->patch($request, $options);
+                    break;
+                case 'POST_MULTIPART':
+                    $multipartData = [];
+                    foreach ($data as $key => $value) {
+                        if ($key === 'file') {
+                            $multipartData[] = [
+                                'name' => $value['name'],
+                                'contents' => fopen($value['tmp_name'], 'r'),
+                                'filename' => $value['name'],
+                            ];
+                        } else {
+                            $multipartData[] = [
+                                'name' => $key,
+                                'contents' => $value,
+                            ];
+                        }
+                    }
+                    $options['multipart'] = $multipartData;
+                    // Remove Content-Type header for multipart requests
+                    unset($options['headers']['Content-Type']);
+                    $response = $this->client->post($request, $options);
+                    break;
+                default: // GET
+                    if ($data) {
+                        $options['query'] = $data;
+                    }
+                    $response = $this->client->get($request, $options);
+            }
+
+            return $this->processResponse($response);
+        } catch (\Exception $e) {
+            // Handle Guzzle exceptions (e.g., network errors, timeouts)
+            throw new DirectusException('API request failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
+    }
 
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    private function processResponse(ResponseInterface $response): array
+    {
+        $statusCode = $response->getStatusCode();
+        $body = $response->getBody()->getContents();
+        $data = json_decode($body, true);
 
-        curl_setopt($curl, CURLOPT_URL, $request);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $headers = $response->getHeaders();
 
-        $result = curl_exec($curl); // execute the curl
+        $result = [
+            'data' => $data,
+            'headers' => $headers,
+            'status' => $statusCode,
+        ];
 
-        $http_headers = curl_getinfo($curl);
-        $http_error = curl_errno($curl);
-
-        curl_close($curl);
-
-        if ($http_error) {
-            $result['errors'] = $http_error;
-            $result['headers'] = $http_headers;
-        } else {
-            $result = json_decode($result, true);
-            $result['headers'] = $http_headers;
+        if ($statusCode >= 400) {
+            // Handle API errors (e.g., log the error, throw an exception)
+            error_log('API error: ' . $body);
+            // Optionally, throw an exception with the error details
+            throw new DirectusException('API error: ' . $body, $statusCode);
         }
 
         return $result;
     }
 
-    // Set Auth Token
-    public function auth_token($token)
+    public function authLogout()
     {
-        $this->auth_token = $token;
-    }
-
-    // Items
-    public function get_items($collection, $data = false)
-    {
-        if (is_array($data)):
-            return $this->strip_headers($this->make_call('/items/' . $collection, $data, 'GET'));
-        elseif (is_integer($data) || is_string($data)):
-            return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $data, false, 'GET'));
-        else:
-            return $this->strip_headers($this->make_call('/items/' . $collection, false, 'GET'));
-        endif;
-    }
-
-    public function create_items($collection, $fields)
-    {
-        return $this->strip_headers($this->make_call('/items/' . $collection, $fields, 'POST'));
-    }
-
-    public function update_items($collection, $fields, $id = null)
-    {
-        if ($id != NULL):
-            return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $id, $fields, 'PATCH'));
-        else:
-            return $this->strip_headers($this->make_call('/items/' . $collection, $fields, 'PATCH'));
-        endif;
-    }
-
-    public function delete_items($collection, $id)
-    {
-        if (is_array($id)):
-            return $this->strip_headers($this->make_call('/items/' . $collection, $id, 'DELETE'));
-        else:
-            return $this->strip_headers($this->make_call('/items/' . $collection . '/' . $id, false, 'DELETE'));
-        endif;
-    }
-
-    // Auth
-    public function auth_user($email, $password, $otp = false)
-    {
-        $data = array('email' => $email, 'password' => $password);
-
-        if ($otp != false)
-            $data['otp'] = $otp;
-
-        $response = $this->make_call('/auth/login', $data, 'POST');
-
-        if ($response['headers']['http_code'] === 200):
-            $this->set_value('directus_refresh', $response['data']['refresh_token']);
-            $this->set_value('directus_access', $response['data']['access_token']);
-
-            $expires = $response['data']['expires'] / 1000;
-            $expires = time() + $expires;
-
-            $this->set_value('directus_access_expires', $expires);
-
+        $data = ['refresh_token' => $this->storage->get('directus_refresh')];
+        $response = $this->makeCall('/auth/logout', $data, 'POST', true);
+        if ($response['status'] === 204) {
+            $this->storage->delete('directus_refresh');
+            $this->storage->delete('directus_access');
+            $this->storage->delete('directus_access_expires');
+            header('Refresh:0');
             return true;
-        else:
-            return $this->strip_headers($response);
-        endif;
+        } else {
+            return $this->stripHeaders($response);
+        }
     }
 
-    public function auth_logout()
+    public function authPasswordRequest(string $email, string $resetUrl = ''): array
     {
-        $data = array("refresh_token" => $this->get_value('directus_refresh'));
-        $response = $this->make_call('/auth/logout', $data, 'POST', true);
-        if ($response['headers']['http_code'] === 200):
-            $this->unset_value('directus_refresh');
-            $this->unset_value('directus_access');
-            $this->unset_value('directus_access_expires');
-            header("Refresh:0");
-            return true;
-        else:
-            return $this->strip_headers($response);
-        endif;
+        $data = ['email' => $email];
+        if ($resetUrl != '') {
+            $data['reset_url'] = $resetUrl;
+        }
+        return $this->makeCall('/auth/password/request', $data, 'POST');
     }
 
-    public function auth_password_request($email, $reset_url = false)
+    public function authPasswordReset(string $token, string $password): array
     {
-        $data = array('email' => $email);
-        if ($reset_url != false)
-            $data['reset_url'] = $reset_url;
-        $response = $this->make_call('/auth/password/request', $data, 'POST');
-        if ($response['headers']['http_code'] === 200):
-            return true;
-        else:
-            return $this->strip_headers($response);
-        endif;
+        $data = ['token' => $token, 'password' => $password];
+        return $this->makeCall('/auth/password/reset', $data, 'POST');
     }
 
-    public function auth_password_reset($token, $password)
+    public function getBaseUrl(): string
     {
-        $data = array('token' => $token, 'password' => $password);
-        $response = $this->make_call('/auth/password/reset', $data, 'POST');
-        if ($response['headers']['http_code'] === 200):
-            return true;
-        else:
-            return $this->strip_headers($response);
-        endif;
+        return $this->baseUrl;
     }
 
-    // Users
-    public function users_get($data = false)
+    public function getClient(): Client
     {
-        if (is_array($data)):
-            return $this->strip_headers($this->make_call('/users', $data, 'GET'));
-        elseif (is_integer($data) || is_string($data)):
-            return $this->strip_headers($this->make_call('/users/' . $data, false, 'GET'));
-        else:
-            return $this->strip_headers($this->make_call('/users', false, 'GET'));
-        endif;
+        return $this->client;
     }
 
-    public function users_create($fields)
+    public function makeCustomCall(string $uri, $data = false, string $method = 'GET'): array
     {
-        return $this->strip_headers($this->make_call('/users', $fields, 'POST'));
+        return $this->makeCall($uri, $data, $method);
     }
 
-    public function users_update($fields, $id = null)
+    public function items(string $collection): ItemsEndpoint
     {
-        return $this->strip_headers($this->make_call('/users/' . $id, $fields, 'PATCH'));
+        return new ItemsEndpoint($this, $collection);
     }
 
-    public function users_delete($id)
+    public function files(): FilesEndpoint
     {
-        if (is_array($id)):
-            return $this->strip_headers($this->make_call('/users', $id, 'DELETE'));
-        else:
-            return $this->strip_headers($this->make_call('/users/' . $id, false, 'DELETE'));
-        endif;
+        return new FilesEndpoint($this);
     }
 
-    public function users_invite($email, $role, $invite_url = false)
+    public function activity(): ActivityEndpoint
     {
-        $data = array('email' => $email, 'role' => $role);
-        if ($invite_url != false)
-            $data['invite_url'] = $invite_url;
-        $response = $this->make_call('/users/invite', $data, 'POST');
-        if ($response['headers']['http_code'] === 200):
-            return true;
-        else:
-            return $this->strip_headers($response);
-        endif;
+        return new ActivityEndpoint($this);
     }
 
-    public function users_accept_invite($password, $token)
+    public function collections(): CollectionsEndpoint
     {
-        $data = array('password' => $password, 'token' => $token);
-        $response = $this->make_call('/users/invite/accept', $data, 'POST');
-        if ($response['headers']['http_code'] === 200):
-            return true;
-        else:
-            return $this->strip_headers($response);
-        endif;
+        return new CollectionsEndpoint($this);
     }
 
-    public function users_me($filter = false)
+    public function comments(): CommentsEndpoint
     {
-        return $this->strip_headers($this->make_call('/users/me', $filter, 'GET'));
+        return new CommentsEndpoint($this);
     }
 
-    // Files
-    public function files_get($data = false)
+    public function contentVersions(): ContentVersionsEndpoint
     {
-        if (is_string($data)):
-            return $this->strip_headers($this->make_call('/files/' . $data, false, 'GET'));
-        else:
-            return $this->strip_headers($this->make_call('/files', false, 'GET'));
-        endif;
+        return new ContentVersionsEndpoint($this);
     }
 
-    public function files_create($file, $folder = null, $storage = 'local')
+    public function dashboards(): DashboardsEndpoint
     {
-        $data = array("file" => $file, "storage" => $storage, "folder" => $folder);
-        return $this->strip_headers($this->make_call('/files', $data, 'POST_MULTIPART'));
+        return new DashboardsEndpoint($this);
     }
 
-     public function files_update($id, $fields)
+    public function extensions(): ExtensionsEndpoint
     {
-        return $this->strip_headers($this->make_call('/files/' . $id, $fields, 'PATCH'));
+        return new ExtensionsEndpoint($this);
     }
 
-    public function files_delete($id)
+    public function fields(string $collection): FieldsEndpoint
     {
-        if (is_array($id)):
-            return $this->strip_headers($this->make_call('/files', $id, 'DELETE'));
-        else:
-            return $this->strip_headers($this->make_call('/files/' . $id, false, 'DELETE'));
-        endif;
+        return new FieldsEndpoint($this, $collection);
     }
 
-
-    // Custom Calls
-    public function get($uri, $data = false)
+    public function flows(): FlowsEndpoint
     {
-        return $this->strip_headers($this->make_call($uri, $data, 'GET'));
+        return new FlowsEndpoint($this);
     }
 
-    public function post($uri, $data = false)
+    public function folders(): FoldersEndpoint
     {
-        return $this->strip_headers($this->make_call($uri, $data, 'POST'));
+        return new FoldersEndpoint($this);
     }
 
-    public function patch($uri, $data = false)
+    public function notifications(): NotificationsEndpoint
     {
-        return $this->strip_headers($this->make_call($uri, $data, 'PATCH'));
+        return new NotificationsEndpoint($this);
     }
 
-    public function delete($uri, $data = false)
+    public function operations(): OperationsEndpoint
     {
-        return $this->strip_headers($this->make_call($uri, $data, 'DELETE'));
+        return new OperationsEndpoint($this);
+    }
+
+    public function panels(): PanelsEndpoint
+    {
+        return new PanelsEndpoint($this);
+    }
+
+    public function permissions(): PermissionsEndpoint
+    {
+        return new PermissionsEndpoint($this);
+    }
+
+    public function policies(): PoliciesEndpoint
+    {
+        return new PoliciesEndpoint($this);
+    }
+
+    public function presets(): PresetsEndpoint
+    {
+        return new PresetsEndpoint($this);
+    }
+
+    public function relations(): RelationsEndpoint
+    {
+        return new RelationsEndpoint($this);
+    }
+
+    public function revisions(): RevisionsEndpoint
+    {
+        return new RevisionsEndpoint($this);
+    }
+
+    public function roles(): RolesEndpoint
+    {
+        return new RolesEndpoint($this);
+    }
+
+    public function schema(): SchemaEndpoint
+    {
+        return new SchemaEndpoint($this);
+    }
+
+    public function server(): ServerEndpoint
+    {
+        return new ServerEndpoint($this);
+    }
+
+    public function settings(): SettingsEndpoint
+    {
+        return new SettingsEndpoint($this);
+    }
+
+    public function shares(): SharesEndpoint
+    {
+        return new SharesEndpoint($this);
+    }
+
+    public function translations(): TranslationsEndpoint
+    {
+        return new TranslationsEndpoint($this);
+    }
+
+    public function users(): UsersEndpoint
+    {
+        return new UsersEndpoint($this);
+    }
+
+    public function utilities(): UtilitiesEndpoint
+    {
+        return new UtilitiesEndpoint($this);
     }
 }
