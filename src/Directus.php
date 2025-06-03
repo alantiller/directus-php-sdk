@@ -213,6 +213,27 @@ class Directus
                     unset($options['headers']['Content-Type']);
                     $response = $this->client->post($request, $options);
                     break;
+                case 'PATCH_MULTIPART':
+                    $multipartData = [];
+                    foreach ($data as $key => $value) {
+                        if ($key === 'file') {
+                            $multipartData[] = [
+                                'name' => $value['name'],
+                                'contents' => fopen($value['tmp_name'], 'r'),
+                                'filename' => $value['name'],
+                            ];
+                        } else {
+                            $multipartData[] = [
+                                'name' => $key,
+                                'contents' => $value,
+                            ];
+                        }
+                    }
+                    $options['multipart'] = $multipartData;
+                    // Remove Content-Type header for multipart requests
+                    unset($options['headers']['Content-Type']);
+                    $response = $this->client->patch($request, $options);
+                    break;
                 default: // GET
                     if ($data) {
                         $options['query'] = $data;
