@@ -16,9 +16,9 @@ class FilesEndpoint extends AbstractEndpoint
     public function create(array $file, string $folder = null, string $storage = 'local'): array
     {
         $data = [
+            'folder' => $folder,
             'file' => $file,
             'storage' => $storage,
-            'folder' => $folder,
         ];
         return $this->directus->makeCustomCall('/files', $data, 'POST_MULTIPART');
     }
