@@ -244,6 +244,17 @@ print_r($updated_file);
 // Delete a file
 $deleted_file = $files->delete('file_id');
 print_r($deleted_file);
+
+// Update complete file (uses custom call)
+$file_path = '/path/to/your/file.jpg';
+$this->directus->makeCustomCall(
+    sprintf('/files/%s', $fileId),
+    [
+        'name' => basename($file_path),
+        'tmp_name' => $file_path,
+    ],
+    'PATCH_MULTIPART'
+);
 ```
 
 ### Other Endpoints
