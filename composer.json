@@ -16,11 +16,11 @@
     },
     "require": {
         "php": "^8.0",
-        "guzzlehttp/guzzle": "^7.0"
+        "guzzlehttp/guzzle": "^8.2"
     },
     "minimum-stability": "stable",
     "require-dev": {
-        "pestphp/pest": "^3.7"
+        "pestphp/pest": "^5.3"
     },
     "config": {
         "allow-plugins": {
